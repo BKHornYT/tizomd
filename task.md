@@ -2,27 +2,25 @@
 
 ## Now
 
-Repo is **public** and pushed (`github.com/BKHornYT/tizomd`, main), UI restyled
-to a Typora-simple look (2026-09-24): light paper default, slim header, flat
-tabs, centered preview column, Save open export moved to the native menu
-(Settings… = Ctrl+,). All green: typecheck, 29/29 tests, build, live boot.
-Next is the first "feel it" pass: install `tizomd-0.0.1-setup.exe` (or
-`npm run dist` / `npm run dev`) on real `.md` files, exercise the Typora block
-editor, save-guard and session restore, then fix what that surfaces.
+**v0.1.0 released** (2026-09-24): tag pushed, CI built + published Windows
+(NSIS + zip) and Linux (AppImage), both update feeds (`latest.yml`,
+`latest-linux.yml`) on the release. Auto-update has a real target now — install
+`tizomd-0.1.0-setup.exe` (or the zip) from the release page and it will update
+itself when the next version lands. What remains is the hands-on feel-it pass
+on real `.md` files, then v0.1.1 as the auto-update proof.
 
 ## Next
 
-- [ ] **User testing on Windows** — install the NSIS build (build it with
-      `npm run dist`), open a folder of real `.md` files, click blocks to edit,
-      try Preview/Split/Raw, Save As, exports, theme toggle, Ctrl+N/O/S/Ctrl+,
-      and tell the owner what feels wrong; expect UI polish fixes
+- [ ] **User testing on Windows** — install `tizomd-0.1.0-setup.exe` from the
+      release, open a folder of real `.md` files, click blocks to edit, try
+      Preview/Split/Raw, Save As, exports, theme toggle, Ctrl+N/O/S/Ctrl+, and
+      tell the owner what feels wrong; expect UI polish fixes
 - [ ] Verify session memory across a restart: dirty tab + crash (force-kill)
       → reopen offers recovery; normal close → no recovery prompt
 - [ ] Verify the save guard against a real edit: open a file, change it in
       another editor, hit Save → disk-changed banner, Restore/Discard works
-- [ ] First tagged release `v0.1.0` → GitHub Actions builds + publishes
-      (Windows NSIS + zip, Linux AppImage); then a `v0.1.1` bump to prove
-      auto-update actually updates a test install
+- [ ] **v0.1.1 bump** = the auto-update proof: same flow (bump, commit, tag),
+      watch an installed 0.1.0 upgrade itself after a few minutes
 - [ ] macOS not built (out of scope); nothing in the stack blocks it later
 - [ ] `docs/gotchas.md`: move the Gotchas section out of `CLAUDE.md` once
       coding deepens
@@ -42,6 +40,8 @@ release is the real dist; CI does it and publishes.
       quieted; typecheck + 29/29 + build + boot re-verified
 - [x] 2026-09-24 — Repo pushed public: git init (main), .gitattributes, merged
       the GitHub README, `gh repo edit` → Public (enables auto-update feeds)
+- [x] 2026-09-24 — v0.1.0 released: version bump, tag `v0.1.0`, CI published
+      Windows NSIS + zip and Linux AppImage with both update feeds; not a draft
 - [x] 2026-09-23 — Project created
 - [x] 2026-09-23 — Planning: form (Electron app), features, license (custom
       Tizo), platforms (Windows + Linux), repo name, update system

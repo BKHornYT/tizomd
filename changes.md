@@ -11,6 +11,21 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — First release v0.1.0 published (OpenCode · big-pickle)
+**What:** Bumped version 0.0.1 → 0.1.0 in `package.json` + `package-lock.json`,
+committed, and pushed tag `v0.1.0`. The tag-driven Release workflow ran green:
+Windows (typecheck + tests + build + electron-builder publish) then serialized
+Linux; both jobs passed. The release is **published (not a draft)** with the
+full asset set: `tizomd-0.1.0-setup.exe` (+ blockmap), `tizomd-0.1.0-x64.zip`,
+`tizomd-0.1.0-x86_64.AppImage`, and **both update feeds** — `latest.yml`
+(Windows) and `latest-linux.yml` (Linux) — so auto-update now has a real
+target. Known CI noise: Node 20 deprecation warning on the checkout/setup-node
+actions (forced to Node 24, harmless).
+**Why:** User: "i guess make a release then?" — the first public build, and the
+moment auto-update becomes real (a locally installed 0.0.1 build can now see
+and update to 0.1.0). Proven end-to-end: tag ≡ version guard passed on CI.
+**Files:** `package.json`, `package-lock.json`, tag `v0.1.0`
+
 ## 2026-09-24 — Typora-style UI restyle + repo pushed public (OpenCode · big-pickle)
 **What:** User: "make it simple like typora or whatever, it does not need to look
 like the video downloader." Replaced the navy-chrome/purple-accent theme with a

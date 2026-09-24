@@ -34,10 +34,14 @@ through GitHub suggestions from users.
 - **2026-09-24:** UI restyled to the Typora-simple look (light default, slim
   chrome, centered page) and repo pushed **public**
   (`github.com/BKHornYT/tizomd`) — see Key Decisions and changes.md
-- **In progress:** first hands-on bring-up on real `.md` files — UI polish,
-  any rough edges the code pass cannot see. First release at tag `v0.1.0`.
-- **Known broken / not started:** no release built yet (CI does it); macOS
-  unbuilt; nothing user-tested
+- **2026-09-24:** **v0.1.0 released** — tag-driven CI built + published the
+  Windows NSIS installer + zip and the Linux AppImage with both update feeds
+  (`latest.yml`, `latest-linux.yml`); auto-update has a real target
+- **In progress:** hands-on bring-up with the v0.1.0 install — UI polish and
+  any rough edges the code pass cannot see; then `v0.1.1` as the auto-update
+  proof.
+- **Known broken / not started:** macOS unbuilt; unsigned Windows installers
+  (SmartScreen warning); nothing user-tested beyond smoke boots
 
 ## Stack (implemented)
 
