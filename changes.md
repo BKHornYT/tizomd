@@ -11,6 +11,34 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — Black default, headerless UI, no DevTools, .md file association (OpenCode · big-pickle)
+**What:** Four adjustments from the user's first-use notes and requests.
+(1) **Black is the default theme again** — `DEFAULT_SETTINGS.theme` back to
+`dark`, the dark palette is true black (`#000000`) with near-black surfaces,
+and bare `:root` in `index.css` is dark (light is opt-in via `:root.light`);
+`main/index.ts` reads the saved theme for the window `backgroundColor` so a
+booted-dark app never flashes white. (2) **Less chrome** — the header row is
+gone entirely; theme toggle, update indicator and the view-mode switcher moved
+into a single bottom app-level `StatusBar` (saved/modified + click hint on the
+left, empty state shows the wordmark), tabs got thinner with no active fill,
+FileTree lost its bordered "FILES" label. (3) **DevTools removed** — the
+detached auto-open in dev and the View-menu `toggleDevTools` role are gone, so
+no inspect-element/shortcut pops up. (4) **`.md` file association** — new
+`fileAssociations` in `electron-builder.yml` (ext md, role Editor) registers
+TizoMD as a default-app option on Windows and sets the MimeType on Linux.
+Main queues launch-argv markdown files (`queueOpenPaths`) which the renderer
+drains on mount via `files:takeOpenPaths`, and a second-instance launch
+(double-click while running) is pushed through `file:open-paths`. Verified:
+typecheck, 29/29 tests, build, clean boot with a `.md` on the command line,
+`dist:dir` packages.
+**Why:** "blackmode for default", "make it less chromey", "no inspect element
+page", "make it so it can be used as a default app for .md files".
+**Files:** `src/main/{index,ipc,menu,store/settings}.ts`, `src/preload/index.ts`,
+`src/shared/types.ts` (unchanged), `src/renderer/src/{App,index.css,strings}.tsx`
+`.../App.tsx`, `.../index.css`, `.../components/TabBar.tsx`,
+`.../components/FileTree.tsx`, `.../editor/EditorPane.tsx`,
+`.../views/SettingsView.tsx`, `electron-builder.yml`
+
 ## 2026-09-24 — First release v0.1.0 published (OpenCode · big-pickle)
 **What:** Bumped version 0.0.1 → 0.1.0 in `package.json` + `package-lock.json`,
 committed, and pushed tag `v0.1.0`. The tag-driven Release workflow ran green:

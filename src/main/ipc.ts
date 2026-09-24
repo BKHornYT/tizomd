@@ -19,6 +19,23 @@ import { loadSession, cacheSession, finalWrite } from './store/session'
 import { checkForUpdates, quitAndInstall, initUpdates, currentUpdateState } from './update'
 import { buildDocumentHtml, pdfFromHtml } from './export'
 
+// Files handed to the app on the command line (a .md double-click / "Open with").
+// Packaged Electron starts before the renderer's listener exists, so main queues
+// them here and the renderer pulls the queue on mount. A second launch while the
+// app is running is pushed live through 'file:open-paths' instead (the listener
+// is already up by then).
+let queuedOpenPaths: string[] = []
+
+export function queueOpenPaths(paths: string[]): void {
+  queuedOpenPaths.push(...paths)
+}
+
+function takeQueuedOpenPaths(): string[] {
+  const paths = queuedOpenPaths
+  queuedOpenPaths = []
+  return paths
+}
+
 function wire(getWindow: () => BrowserWindow | null): void {
   ipcMain.handle('app:versions', () => ({
     app: app.getVersion(),
@@ -33,6 +50,8 @@ function wire(getWindow: () => BrowserWindow | null): void {
   })
 
   // --- Files -------------------------------------------------------------
+
+  ipcMain.handle('files:get-open-paths', (): string[] => takeQueuedOpenPaths())
 
   ipcMain.handle('dialog:open-files', async () => {
     const r = await dialog.showOpenDialog({

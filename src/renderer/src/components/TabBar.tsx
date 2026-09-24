@@ -25,10 +25,10 @@ export default function TabBar({
           <div
             key={tab.key}
             onClick={() => onPick(tab.key)}
-            className={`group relative flex cursor-pointer items-center gap-1.5 border-b-2 px-2.5 py-[7px] text-[13px] transition ${
+            className={`group relative flex cursor-pointer items-center gap-1.5 border-b-2 px-2.5 py-[6px] text-[12.5px] transition ${
               isActive
-                ? 'border-[var(--accent)] bg-[var(--surface-3)] text-[var(--text)]'
-                : 'border-transparent text-[var(--text-dim)] hover:bg-[var(--surface-3)] hover:text-[var(--text)]'
+                ? 'border-[var(--accent)] text-[var(--text)]'
+                : 'border-transparent text-[var(--text-dim)] hover:text-[var(--text)]'
             }`}
           >
             <span className="max-w-44 truncate">{tab.title}</span>

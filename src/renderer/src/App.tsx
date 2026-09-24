@@ -10,7 +10,7 @@ import type {
   ViewMode
 } from '../../shared/types'
 import { strings } from './strings'
-import Icon from './components/Icon'
+import Icon, { type IconName } from './components/Icon'
 import FileTree from './components/FileTree'
 import TabBar from './components/TabBar'
 import EditorPane from './editor/EditorPane'
@@ -198,6 +198,26 @@ export default function App(): JSX.Element {
     void window.tizomd.updates.state().then(setUpdate)
     return window.tizomd.updates.onChange(setUpdate)
   }, [])
+
+  // --- files handed over by the OS (a .md double-click / "Open with") -------
+  useEffect(() => {
+    let mounted = true
+    void window.tizomd.files.takeOpenPaths().then((paths) => {
+      if (mounted && paths.length > 0) void openHandedOff(paths)
+    })
+    const off = window.tizomd.files.onOpenCommand((paths) => {
+      if (paths.length > 0) void openHandedOff(paths)
+    })
+    return () => {
+      mounted = false
+      off()
+    }
+  }, [])
+
+  async function openHandedOff(paths: string[]): Promise<void> {
+    for (const path of paths) await openKnownPath(path)
+    setActiveKey(paths[0] ?? null)
+  }
 
   // --- menu ----------------------------------------------------------------
   const handleMenuAction = useCallback(
@@ -450,30 +470,6 @@ export default function App(): JSX.Element {
 
   return (
     <div className="app-bg flex h-full flex-col overflow-hidden">
-      <header className="surface flex h-9 shrink-0 items-center gap-3 border-b border-subtle px-3">
-        <span className="select-none text-[13px] font-semibold tracking-tight">{strings.appName}</span>
-        <span className="hidden select-none text-[11px] text-[var(--text-dim)] sm:inline">
-          {strings.editor.markdownTag}
-        </span>
-        <div className="flex-1" />
-        {update && (
-          <button
-            onClick={() => void window.tizomd.updates.check()}
-            title={strings.toolbar.checkUpdates}
-            className="mono shrink-0 text-[11px] text-[var(--text-dim)] transition hover:text-[var(--text)]"
-          >
-            {update.canSelfUpdate ? strings.update.current(update.currentVersion) : strings.update.dev}
-          </button>
-        )}
-        <button
-          onClick={() => toggleTheme()}
-          title="Ctrl+Shift+T"
-          className="flex h-6 w-6 items-center justify-center rounded transition hover:bg-[var(--border)]"
-        >
-          <Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} className="h-3.5 w-3.5" />
-        </button>
-      </header>
-
       {showSettings ? (
         <SettingsView settings={settings} onBack={() => setShowSettings(false)} onChanged={setSettings} />
       ) : (
@@ -508,7 +504,6 @@ export default function App(): JSX.Element {
                   onText={(text) => onText(active.key, text)}
                   onCursor={(cursor) => patchTab(active.key, { cursor })}
                   onScroll={(scroll) => patchTab(active.key, { scroll })}
-                  onMode={(mode) => changeView(mode)}
                   onNotice={(notice, action) => handleNotice(active.key, notice, action)}
                 />
               </main>
@@ -521,6 +516,18 @@ export default function App(): JSX.Element {
             />
           )}
         </>
+      )}
+
+      {!showSettings && (
+        <StatusBar
+          open={active}
+          theme={settings.theme}
+          viewMode={viewMode}
+          update={update}
+          onToggleTheme={() => toggleTheme()}
+          onCheckUpdates={() => void window.tizomd.updates.check()}
+          onMode={(mode) => changeView(mode)}
+        />
       )}
 
       {update?.status === 'ready' && update.newVersion !== dismissedUpdate && (
@@ -649,6 +656,90 @@ export default function App(): JSX.Element {
 }
 
 // --- small building blocks -------------------------------------------------
+
+function StatusBar({
+  open,
+  theme,
+  viewMode,
+  update,
+  onToggleTheme,
+  onCheckUpdates,
+  onMode
+}: {
+  open: { dirty: boolean; notice: string | null } | null
+  theme: Settings['theme']
+  viewMode: ViewMode
+  update: UpdateState | null
+  onToggleTheme: () => void
+  onCheckUpdates: () => void
+  onMode: (mode: ViewMode) => void
+}): JSX.Element {
+  return (
+    <div className="surface flex shrink-0 items-center gap-2 border-t border-subtle px-3 py-[3px] text-[11px] text-[var(--text-dim)]">
+      {open ? (
+        <>
+          <span className={`font-medium ${open.dirty ? 'text-[var(--text)]' : ''}`}>
+            {open.dirty ? strings.state.modified : strings.state.saved}
+          </span>
+          {!open.notice && <span className="hidden truncate md:inline">{strings.editor.clickHint}</span>}
+        </>
+      ) : (
+        <span className="select-none">{strings.appName}</span>
+      )}
+      <div className="flex-1" />
+      {update && (
+        <button
+          onClick={onCheckUpdates}
+          title={strings.toolbar.checkUpdates}
+          className="mono text-[11px] transition hover:text-[var(--text)]"
+        >
+          {update.canSelfUpdate ? strings.update.current(update.currentVersion) : strings.update.dev}
+        </button>
+      )}
+      <button
+        onClick={onToggleTheme}
+        title="Ctrl+Shift+T"
+        className="flex h-5 w-5 items-center justify-center rounded transition hover:bg-[var(--border)]"
+      >
+        <Icon name={theme === 'dark' ? 'sun' : 'moon'} className="h-3 w-3" />
+      </button>
+      {open && (
+        <>
+          <span className="mx-1 h-4 w-px bg-[var(--border)]" />
+          <ModeButton icon="eye" label={strings.editor.previewMode} active={viewMode === 'preview'} onClick={() => onMode('preview')} />
+          <ModeButton icon="columns" label={strings.editor.splitMode} active={viewMode === 'split'} onClick={() => onMode('split')} />
+          <ModeButton icon="code" label={strings.editor.rawMode} active={viewMode === 'raw'} onClick={() => onMode('raw')} />
+        </>
+      )}
+    </div>
+  )
+}
+
+function ModeButton({
+  icon,
+  label,
+  active,
+  onClick
+}: {
+  icon: IconName
+  label: string
+  active: boolean
+  onClick: () => void
+}): JSX.Element {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      className={`flex h-5 items-center rounded px-1 transition ${
+        active
+          ? 'text-[var(--accent)]'
+          : 'hover:bg-[var(--border)] hover:text-[var(--text)]'
+      }`}
+    >
+      <Icon name={icon} className="h-3 w-3" />
+    </button>
+  )
+}
 
 function UpdateBanner({
   version,

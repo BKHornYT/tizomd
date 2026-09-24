@@ -8,7 +8,7 @@ import { app } from 'electron'
 import type { Settings, Theme, ViewMode } from '../../shared/types'
 
 export const DEFAULT_SETTINGS: Settings = {
-  theme: 'light',
+  theme: 'dark',
   viewMode: 'preview',
   editorFontSize: 15,
   sidebarOpen: true,

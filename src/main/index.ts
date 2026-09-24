@@ -1,16 +1,26 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { installIpc } from './ipc'
+import { installIpc, queueOpenPaths } from './ipc'
 import { installMenu } from './menu'
 import { finalWrite } from './store/session'
+import { loadSettings } from './store/settings'
 
 const isDev = !app.isPackaged
+
+/** Files handed to the app on the command line that already exist on disk. */
+function markdownFilesFrom(argv: string[]): string[] {
+  return argv.filter((a) => !a.startsWith('-') && /\.(md|markdown)$/i.test(a) && existsSync(a))
+}
 
 function createWindow(): BrowserWindow {
   // Packaged builds get the icon from electron-builder; in dev it has to be set
   // explicitly or the window and taskbar show the default Electron logo.
   const devIcon = join(__dirname, '../../build/icon.ico')
+
+  // Match the saved theme instead of guessing, so an app booted dark does not
+  // flash a pale window before the renderer paints.
+  const pageBg = loadSettings().theme === 'light' ? '#ffffff' : '#000000'
 
   const win = new BrowserWindow({
     width: 1200,
@@ -18,7 +28,7 @@ function createWindow(): BrowserWindow {
     minWidth: 900,
     minHeight: 600,
     show: false, // revealed on ready-to-show to avoid a white flash
-    backgroundColor: '#ffffff',
+    backgroundColor: pageBg,
     ...(!app.isPackaged && existsSync(devIcon) ? { icon: devIcon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -41,7 +51,6 @@ function createWindow(): BrowserWindow {
 
   if (isDev && process.env['ELECTRON_RENDERER_URL']) {
     void win.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    win.webContents.openDevTools({ mode: 'detach' })
   } else {
     void win.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -57,14 +66,21 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   let mainWindow: BrowserWindow | null = null
 
-  app.on('second-instance', () => {
+  // A .md double-click that lands while the app is already running arrives as a
+  // second-instance launch; forward its files to the open traffic.
+  app.on('second-instance', (_e, commandLine) => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
+      const files = markdownFilesFrom(commandLine.slice(1))
+      if (files.length > 0) mainWindow.webContents.send('file:open-paths', files)
     }
   })
 
   void app.whenReady().then(() => {
+    // Open the launch-time files (if any) once the renderer is mounted enough
+    // to ask for them.
+    queueOpenPaths(markdownFilesFrom(process.argv.slice(1)))
     installMenu(() => mainWindow)
     installIpc(() => mainWindow)
     mainWindow = createWindow()

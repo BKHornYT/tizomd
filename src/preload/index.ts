@@ -30,6 +30,11 @@ const api = {
       ipcRenderer.invoke('dialog:save-markdown', defaultPath),
     read: (path: string): Promise<ReadFileResult | { ok: false; error: string }> =>
       ipcRenderer.invoke('file:read', path),
+    /**
+     * Files the OS handed to the app when it launched (a .md double-click),
+     * queued by main because the renderer was not up yet. Pulled once on mount.
+     */
+    takeOpenPaths: (): Promise<string[]> => ipcRenderer.invoke('files:get-open-paths'),
     save: (payload: {
       path: string
       text: string
@@ -37,7 +42,16 @@ const api = {
     }): Promise<SaveFileResult> => ipcRenderer.invoke('file:save', payload),
     stat: (path: string): Promise<{ exists: boolean; mtimeMs: number; size: number }> =>
       ipcRenderer.invoke('file:stat', path),
-    reveal: (path: string): Promise<void> => ipcRenderer.invoke('shell:reveal', path)
+    reveal: (path: string): Promise<void> => ipcRenderer.invoke('shell:reveal', path),
+    /** Files handed to the app on the command line (a .md double-click), or a
+     *  second-instance open while the app is already running. */
+    onOpenCommand: (handler: (paths: string[]) => void): (() => void) => {
+      const listener = (_e: unknown, paths: string[]): void => handler(paths)
+      ipcRenderer.on('file:open-paths', listener)
+      return () => {
+        ipcRenderer.off('file:open-paths', listener)
+      }
+    }
   },
 
   folder: {

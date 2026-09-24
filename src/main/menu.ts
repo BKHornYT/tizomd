@@ -70,7 +70,6 @@ export function installMenu(getWindow: () => BrowserWindow | null): void {
       { type: 'separator' },
       { label: 'Toggle Theme', accelerator: 'CmdOrCtrl+Shift+T', click: send('view:theme') },
       { type: 'separator' },
-      { role: 'toggleDevTools' },
       { role: 'resetZoom' },
       { role: 'zoomIn' },
       { role: 'zoomOut' }

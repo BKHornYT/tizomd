@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify'
 import type { ViewMode } from '../../../shared/types'
 import { renderMarkdown, replaceLines, splitBlocks } from '../../../shared/markdown'
 import { strings } from '../strings'
-import Icon, { type IconName } from '../components/Icon'
+import Icon from '../components/Icon'
 
 type Notice = 'disk-changed' | 'recovery' | null
 
@@ -40,7 +40,6 @@ export default function EditorPane({
   onText,
   onCursor,
   onScroll,
-  onMode,
   onNotice
 }: {
   tab: EditorTab
@@ -49,7 +48,6 @@ export default function EditorPane({
   onText: (text: string) => void
   onCursor: (cursor: number) => void
   onScroll: (scroll: number) => void
-  onMode: (mode: ViewMode) => void
   onNotice: (notice: Notice, action?: 'restore' | 'discard') => void
 }): JSX.Element {
   const blocks = useMemo(() => splitBlocks(tab.text), [tab.text])
@@ -253,65 +251,7 @@ export default function EditorPane({
           </div>
         )}
       </div>
-
-      <StatusBar
-        dirty={tab.dirty}
-        hint={!tab.notice}
-        viewMode={viewMode}
-        onMode={onMode}
-      />
     </div>
-  )
-}
-
-function StatusBar({
-  dirty,
-  hint,
-  viewMode,
-  onMode
-}: {
-  dirty: boolean
-  hint: boolean
-  viewMode: ViewMode
-  onMode: (mode: ViewMode) => void
-}): JSX.Element {
-  return (
-    <div className="surface flex shrink-0 items-center gap-3 border-t border-subtle px-3 py-1 text-[11px] text-[var(--text-dim)]">
-      <span className={`font-medium ${dirty ? 'text-[var(--text)]' : ''}`}>
-        {dirty ? strings.state.modified : strings.state.saved}
-      </span>
-      {hint && <span className="hidden truncate md:inline">{strings.editor.clickHint}</span>}
-      <div className="flex-1" />
-      <ModeButton icon="eye" label={strings.editor.previewMode} active={viewMode === 'preview'} onClick={() => onMode('preview')} />
-      <ModeButton icon="columns" label={strings.editor.splitMode} active={viewMode === 'split'} onClick={() => onMode('split')} />
-      <ModeButton icon="code" label={strings.editor.rawMode} active={viewMode === 'raw'} onClick={() => onMode('raw')} />
-    </div>
-  )
-}
-
-function ModeButton({
-  icon,
-  label,
-  active,
-  onClick
-}: {
-  icon: IconName
-  label: string
-  active: boolean
-  onClick: () => void
-}): JSX.Element {
-  return (
-    <button
-      onClick={onClick}
-      title={label}
-      className={`flex h-6 items-center gap-1 rounded px-1.5 transition ${
-        active
-          ? 'text-[var(--accent)]'
-          : 'text-[var(--text-dim)] hover:bg-[var(--border)] hover:text-[var(--text)]'
-      }`}
-    >
-      <Icon name={icon} className="h-3.5 w-3.5" />
-    </button>
   )
 }
 

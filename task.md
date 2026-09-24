@@ -2,25 +2,27 @@
 
 ## Now
 
-**v0.1.0 released** (2026-09-24): tag pushed, CI built + published Windows
-(NSIS + zip) and Linux (AppImage), both update feeds (`latest.yml`,
-`latest-linux.yml`) on the release. Auto-update has a real target now — install
-`tizomd-0.1.0-setup.exe` (or the zip) from the release page and it will update
-itself when the next version lands. What remains is the hands-on feel-it pass
-on real `.md` files, then v0.1.1 as the auto-update proof.
+Post-v0.1.0 feedback fixes landed (black default, headerless even-more-minimal
+UI with a single bottom status bar, DevTools surfaces removed, `.md` file
+association + command-line open) — all green: typecheck, 29/29 tests, build,
+boot with a `.md` arg, `dist:dir`. These haven't been released yet; the next
+release installs with markdown double-click working and the black theme as
+first impression.
 
 ## Next
 
-- [ ] **User testing on Windows** — install `tizomd-0.1.0-setup.exe` from the
-      release, open a folder of real `.md` files, click blocks to edit, try
-      Preview/Split/Raw, Save As, exports, theme toggle, Ctrl+N/O/S/Ctrl+, and
-      tell the owner what feels wrong; expect UI polish fixes
+- [ ] **Release v0.1.1** with the black-default / no-chrome / no-DevTools /
+      file-association fixes (bump, commit, tag → CI publishes) — user then
+      installs fresh, and the auto-update path proves itself: an old 0.1.0
+      install should offer the upgrade
+- [ ] **User testing on Windows** — install the v0.1.1 release, double-click a
+      `.md` file (should open in TizoMD), set it as default app, exercise the
+      block editor, exports, theme toggle, Ctrl+N/O/S/Ctrl+, and report what
+      feels wrong
 - [ ] Verify session memory across a restart: dirty tab + crash (force-kill)
       → reopen offers recovery; normal close → no recovery prompt
 - [ ] Verify the save guard against a real edit: open a file, change it in
       another editor, hit Save → disk-changed banner, Restore/Discard works
-- [ ] **v0.1.1 bump** = the auto-update proof: same flow (bump, commit, tag),
-      watch an installed 0.1.0 upgrade itself after a few minutes
 - [ ] macOS not built (out of scope); nothing in the stack blocks it later
 - [ ] `docs/gotchas.md`: move the Gotchas section out of `CLAUDE.md` once
       coding deepens
@@ -40,6 +42,10 @@ release is the real dist; CI does it and publishes.
       quieted; typecheck + 29/29 + build + boot re-verified
 - [x] 2026-09-24 — Repo pushed public: git init (main), .gitattributes, merged
       the GitHub README, `gh repo edit` → Public (enables auto-update feeds)
+- [x] 2026-09-24 — Feedback fixes: black default theme (true-black palette,
+      window bg follows saved theme), header removed (all affordances in one
+      bottom status bar), DevTools auto-open + menu role removed, `.md` file
+      association (fileAssociations + argv open + second-instance push)
 - [x] 2026-09-24 — v0.1.0 released: version bump, tag `v0.1.0`, CI published
       Windows NSIS + zip and Linux AppImage with both update feeds; not a draft
 - [x] 2026-09-23 — Project created

@@ -6,6 +6,16 @@ directories:
   buildResources: build
   output: dist
 
+# Makes TizoMD a registered editor for .md files — Windows (NSIS writes the
+# registry types + default-app entry) and Linux (MimeType in the desktop file).
+# Double-clicking a markdown file opens it in a fresh TizoMD window; an already
+# running instance receives it via the second-instance handler in src/main.
+fileAssociations:
+  - ext: md
+    name: Markdown
+    description: Markdown document
+    role: Editor
+
 files:
   - out/**
   - '!**/*.map'

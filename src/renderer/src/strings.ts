@@ -18,7 +18,6 @@ export const strings = {
 
   editor: {
     untitled: (n: number): string => `Untitled ${n}`,
-    markdownTag: 'Markdown',
     emptyHint: 'Open a .md file, or press Ctrl+N to start typing.',
     clickHint: 'Click any block to edit its source',
     previewMode: 'Preview',

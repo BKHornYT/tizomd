@@ -31,9 +31,11 @@ through GitHub suggestions from users.
 - **Verified:** `npm run typecheck` clean; `npm test` 29/29 green; `npm run
   build` green; live `npx electron .` boot with clean logs and a real
   `session.json` round-trip (2026-09-24)
-- **2026-09-24:** UI restyled to the Typora-simple look (light default, slim
-  chrome, centered page) and repo pushed **public**
-  (`github.com/BKHornYT/tizomd`) — see Key Decisions and changes.md
+- **2026-09-24:** UI restyled to the Typora-simple look — **black default**, no
+  header, single bottom status bar (theme + update + view mode), no DevTools —
+  `.md` file association added (`fileAssociations` + command-line open), and
+  repo pushed **public** (`github.com/BKHornYT/tizomd`) — see Key Decisions
+  and changes.md
 - **2026-09-24:** **v0.1.0 released** — tag-driven CI built + published the
   Windows NSIS installer + zip and the Linux AppImage with both update feeds
   (`latest.yml`, `latest-linux.yml`); auto-update has a real target
@@ -87,7 +89,9 @@ In scope for v1 ("simple and good"):
 - Multiple open files as tabs
 - Folder open + file tree sidebar (a whole folder of markdown, browse + switch)
 - Export to HTML and PDF
-- Light mode default, dark mode available
+- **Registered as a .md file handler** on Windows + Linux (double-click a
+  markdown file and it opens here; settable as the default app for markdown)
+- Dark (black) default, light mode available
 - **Session memory:** remembers open files, cursor position and unsaved content
   across restarts — but done *right*. Notepad-style data loss is the enemy: the
   app must never lose or overwrite what you typed (design note in Key Decisions)
@@ -216,12 +220,21 @@ Decisions worth not re-litigating, and why. Newest first.
   DOMPurify before it reaches the DOM. A malicious readme is a real attack.
 - **2026-09-24 — Visual language: Typora-simple, not downloader-chrome.** The
   user rejected the navy/purple "official Tizo app" look: "make it simple like
-  typora or whatever." So the chrome disappears — light paper default (dark is a
-  soft night gray), slim 36px header (wordmark + theme toggle only; file actions
-  live in the native menu, including Settings… Ctrl+,), flat tab strip with an
-  accent underline, centered 46-rem preview column, thin bottom status bar
-  (Saved/Modified + mode icons). One Tizo touch left: the gradient M mark in
-  the empty/About spots.
+  typora or whatever." So the chrome disappears — **black default** (dark is
+  true `#000000`, light is the opt-in paper mode), no header at all (wordmark,
+  theme toggle, update check and view-mode switcher all live in the thin bottom
+  status bar; file actions live in the native menu, including Settings… Ctrl+,),
+  flat tab strip with an accent underline, centered 46-rem preview column. One
+  Tizo touch left: the gradient M mark in the empty/About spots.
+- **2026-09-24 — No DevTools surfaces.** The detached auto-open in dev and the
+  View-menu `toggleDevTools` role are removed — a user shortcut must never pop
+  the inspector. (Re-enable locally if ever needed; it is a one-line diff.)
+- **2026-09-24 — `.md` is a registered file association.** `fileAssociations`
+  (ext md, Editor role) makes TizoMD a "default app" choice for markdown on
+  Windows and Linux. Launch-argv files are queued by main and pulled by the
+  renderer on mount (`files:takeOpenPaths`); a double-click while already
+  running lands through the single-instance handler as a `file:open-paths`
+  push. `.markdown` opens too, but only `.md` is registered.
 - **2026-09-24 — Repo `BKHornYT/tizomd` pushed public, before v1.** The name
   and URL were locked early so the auto-update path never moves; the user then
   chose "just make it public" (and electron-updater needs a public feed anyway),

@@ -8,10 +8,26 @@
  */
 
 /**
- * Light is the default (paper); dark is the Typora-night mood. Every colour is
- * a semantic variable so a component never hardcodes a theme.
+ * Black is the default (bare `:root` == dark, matching the window background
+ * main sets); light is the optional paper mode. Every colour is a semantic
+ * variable so a component never hardcodes a theme.
  */
 :root,
+:root.dark {
+  --bg: #000000;
+  --surface: #000000;
+  --surface-2: #101114; /* sidebar, subtle panels */
+  --surface-3: #191b1f; /* active tab fill, inline-code tint */
+  --code-bg: #0c0d10; /* code fences */
+  --border: rgb(255 255 255 / 0.12);
+  --text: #e8eaed;
+  --text-dim: #9aa0ab;
+  --accent: #8ab6e5; /* calm blue, Typora-ish */
+  --accent-soft: rgb(138 182 229 / 0.14);
+  --selection: rgb(138 182 229 / 0.3);
+  --danger: #e06c75;
+}
+
 :root.light {
   --bg: #ffffff;
   --surface: #ffffff;
@@ -25,21 +41,6 @@
   --accent-soft: rgb(59 114 196 / 0.1);
   --selection: rgb(59 114 196 / 0.22);
   --danger: #c0392b;
-}
-
-:root.dark {
-  --bg: #1d1f22;
-  --surface: #1f2126;
-  --surface-2: #24272c;
-  --surface-3: #2c3037;
-  --code-bg: #23262b;
-  --border: rgb(255 255 255 / 0.08);
-  --text: #d7dadf;
-  --text-dim: #8f95a0;
-  --accent: #7fb0e0;
-  --accent-soft: rgb(127 176 224 / 0.14);
-  --selection: rgb(127 176 224 / 0.28);
-  --danger: #e06c75;
 }
 
 html,
