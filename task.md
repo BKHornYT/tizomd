@@ -2,24 +2,24 @@
 
 ## Now
 
-Scaffold complete and verified (2026-09-24): `npm install`, `npm run icon`,
-`npm run typecheck`, `npm test`, `npm run build`, and a live `npx electron .`
-smoke test all pass — 29/29 test checks green. The whole app skeleton is
-written and boots. Next up is the first "feel it" pass: open real `.md` files,
-exercise the Typora block editor, save-guard and session restore, then fix what
-that surfaces before heading to release.
+Repo is **public** and pushed (`github.com/BKHornYT/tizomd`, main), UI restyled
+to a Typora-simple look (2026-09-24): light paper default, slim header, flat
+tabs, centered preview column, Save open export moved to the native menu
+(Settings… = Ctrl+,). All green: typecheck, 29/29 tests, build, live boot.
+Next is the first "feel it" pass: install `tizomd-0.0.1-setup.exe` (or
+`npm run dist` / `npm run dev`) on real `.md` files, exercise the Typora block
+editor, save-guard and session restore, then fix what that surfaces.
 
 ## Next
 
-- [ ] **Hands-on bring-up on Windows** — open a folder of real `.md` files,
-      click blocks to edit them, try Preview/Split/Raw, Save As, exports, theme
-      toggle, Ctrl+N/O/S. Expect UI polish fixes (spacing, focus, scroll
-      restore); log anything that feels wrong
+- [ ] **User testing on Windows** — install the NSIS build (build it with
+      `npm run dist`), open a folder of real `.md` files, click blocks to edit,
+      try Preview/Split/Raw, Save As, exports, theme toggle, Ctrl+N/O/S/Ctrl+,
+      and tell the owner what feels wrong; expect UI polish fixes
 - [ ] Verify session memory across a restart: dirty tab + crash (force-kill)
       → reopen offers recovery; normal close → no recovery prompt
 - [ ] Verify the save guard against a real edit: open a file, change it in
       another editor, hit Save → disk-changed banner, Restore/Discard works
-- [ ] Dev-mode settings/session dir is `%APPDATA%\tizomd`; group notes there
 - [ ] First tagged release `v0.1.0` → GitHub Actions builds + publishes
       (Windows NSIS + zip, Linux AppImage); then a `v0.1.1` bump to prove
       auto-update actually updates a test install
@@ -36,6 +36,12 @@ release is the real dist; CI does it and publishes.
 
 <details><summary>Completed tasks</summary>
 
+- [x] 2026-09-24 — Typora-style restyle: neutral light-default theme, slim
+      header (wordmark + theme only), flat tab strip, centered preview page,
+      EditorPane status bar, Settings… menu item (Ctrl+,), FileTree/Settings
+      quieted; typecheck + 29/29 + build + boot re-verified
+- [x] 2026-09-24 — Repo pushed public: git init (main), .gitattributes, merged
+      the GitHub README, `gh repo edit` → Public (enables auto-update feeds)
 - [x] 2026-09-23 — Project created
 - [x] 2026-09-23 — Planning: form (Electron app), features, license (custom
       Tizo), platforms (Windows + Linux), repo name, update system

@@ -31,6 +31,9 @@ through GitHub suggestions from users.
 - **Verified:** `npm run typecheck` clean; `npm test` 29/29 green; `npm run
   build` green; live `npx electron .` boot with clean logs and a real
   `session.json` round-trip (2026-09-24)
+- **2026-09-24:** UI restyled to the Typora-simple look (light default, slim
+  chrome, centered page) and repo pushed **public**
+  (`github.com/BKHornYT/tizomd`) — see Key Decisions and changes.md
 - **In progress:** first hands-on bring-up on real `.md` files — UI polish,
   any rough edges the code pass cannot see. First release at tag `v0.1.0`.
 - **Known broken / not started:** no release built yet (CI does it); macOS
@@ -80,7 +83,7 @@ In scope for v1 ("simple and good"):
 - Multiple open files as tabs
 - Folder open + file tree sidebar (a whole folder of markdown, browse + switch)
 - Export to HTML and PDF
-- Dark mode default, light mode available
+- Light mode default, dark mode available
 - **Session memory:** remembers open files, cursor position and unsaved content
   across restarts — but done *right*. Notepad-style data loss is the enemy: the
   app must never lose or overwrite what you typed (design note in Key Decisions)
@@ -91,8 +94,8 @@ In scope for v1 ("simple and good"):
 - **Auto-update built in** (electron-updater, checked at launch + on a timer,
   same as the downloader) — so a fix we ship actually reaches users instead of
   them sitting on an old build forever. See Key Decisions and Gotchas.
-- A real logo and a finished, official-app look (dark navy Tizo-adjacent visual
-  language, matching the downloader family)
+- A real logo and a finished, official-app look — Typora-clean, not the
+  downloader's navy chrome (see the 2026-09-24 visual decision)
 
 Out of scope for v1 (deliberately):
 
@@ -207,11 +210,19 @@ Decisions worth not re-litigating, and why. Newest first.
 - **2026-09-23 — markdown-it + highlight.js + DOMPurify, locked.** `.md` files
   may contain raw HTML; render with `html:false` and run the output through
   DOMPurify before it reaches the DOM. A malicious readme is a real attack.
-- **2026-09-23 — Repo `BKHornYT/tizomd` is private now, public at v1.** The
-  name and URL are locked before first release so the auto-update path never
-  moves (same reasoning as the downloader deciding the name early). Development
-  happens private; the source-available license and public repo ship together
-  with the first release.
+- **2026-09-24 — Visual language: Typora-simple, not downloader-chrome.** The
+  user rejected the navy/purple "official Tizo app" look: "make it simple like
+  typora or whatever." So the chrome disappears — light paper default (dark is a
+  soft night gray), slim 36px header (wordmark + theme toggle only; file actions
+  live in the native menu, including Settings… Ctrl+,), flat tab strip with an
+  accent underline, centered 46-rem preview column, thin bottom status bar
+  (Saved/Modified + mode icons). One Tizo touch left: the gradient M mark in
+  the empty/About spots.
+- **2026-09-24 — Repo `BKHornYT/tizomd` pushed public, before v1.** The name
+  and URL were locked early so the auto-update path never moves; the user then
+  chose "just make it public" (and electron-updater needs a public feed anyway),
+  so the repo went public with the first push. The source-available LICENSE
+  ships with the code; nothing else about the release plan changes.
 - **2026-09-23 — No server, no telemetry, no web build.** The app is a pure
   local tool. GitHub is only where the code lives and releases are published.
   Anything needing a backend is a feature GitHub users can suggest later.
@@ -242,7 +253,8 @@ Full list grows in a `docs/gotchas.md` once coding starts.
 
 ## Deploy / Where It Lives
 
-- GitHub repo `BKHornYT/tizomd` — **private now, becomes public at v1**
+- GitHub repo `BKHornYT/tizomd` — **public since 2026-09-24** (electron-updater
+  needs a public release feed; user chose "just make it public")
 - Releases carry the Windows NSIS installer, zip, and the Linux AppImage
 - GitHub Actions builds on `windows-latest` + `ubuntu-latest` and publishes on
   tag push (template on the downloader's `release.yml`)

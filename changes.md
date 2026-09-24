@@ -11,6 +11,27 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — Typora-style UI restyle + repo pushed public (OpenCode · big-pickle)
+**What:** User: "make it simple like typora or whatever, it does not need to look
+like the video downloader." Replaced the navy-chrome/purple-accent theme with a
+neutral, paper-first look — light is now the default theme (Typora-reference),
+dark is a soft night gray. Chrome is near-invisible: slim 36px header holding
+only wordmark + theme toggle (file actions moved into the native menu; new
+**Settings…** item, Ctrl+, — `MenuAction 'settings'` added), flat tab strip with
+an accent underline on the active tab (gradient dot colors dropped), FileTree
+narrowed and quieted, EditorPane lost its whole toolbar row — preview is a
+centered 46-rem paper column with a thin bottom status bar (Saved/Modified +
+click hint; view-mode icons on the right). SettingsView + Segmented neutralized.
+Window background white. Re-verified: typecheck, 29/29 tests, build, live
+electron boot clean. Then pushed the repo public to `github.com/BKHornYT/tizomd`
+(git init main, .gitattributes for LF, local identity, merged the user's GitHub
+README via --allow-unrelated-histories, `gh repo edit` visibility public —
+needed for electron-updater to read release feeds).
+**Files:** `src/renderer/src/index.css`, `App.tsx`, `editor/EditorPane.tsx`,
+`components/TabBar.tsx`, `components/FileTree.tsx`, `views/SettingsView.tsx`,
+`strings.ts`, `src/main/menu.ts`, `src/main/index.ts`,
+`src/main/store/settings.ts`, `src/shared/types.ts`, `.gitattributes`, `README.md`
+
 ## 2026-09-24 — Full scaffold: every layer written, tests + build + boot green (OpenCode · big-pickle)
 **What:** Wrote the entire TizoMD codebase from the locked plan, then verified
 it end to end. Config: `package.json` (tizomd/TizoMD 0.0.1, dep set mirroring
