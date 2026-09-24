@@ -39,9 +39,13 @@ through GitHub suggestions from users.
 - **2026-09-24:** **v0.1.0 released** — tag-driven CI built + published the
   Windows NSIS installer + zip and the Linux AppImage with both update feeds
   (`latest.yml`, `latest-linux.yml`); auto-update has a real target
-- **In progress:** hands-on bring-up with the v0.1.0 install — UI polish and
-  any rough edges the code pass cannot see; then `v0.1.1` as the auto-update
-  proof.
+- **2026-09-24:** **v0.1.1 released and auto-update PROVEN live** — update.ts
+  hardened (file logger to `<logs>/update.log`, offline-safe check, later
+  `disableDifferentialDownload`), a local 0.1.0 install was launched and its
+  log shows found → downloaded → auto-installed on quit; installed exe now
+  reports 0.1.1.0. This PC now runs the released build.
+- **In progress:** hands-on user testing on the installed v0.1.1 — UI polish
+  and any rough edges the code pass cannot see.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
   (SmartScreen warning); nothing user-tested beyond smoke boots
 

@@ -2,30 +2,23 @@
 
 ## Now
 
-**v0.1.1 released** (2026-09-24): update.ts hardened (real file logger to
-`<logs>/update.log`, `.catch` on the feed check so an offline launch can't
-crash main), feed verified end-to-end (packaged `app-update.yml` correct, live
-`latest.yml` well-formed), tag `v0.1.1` pushed, CI publishing. A local
-0.1.0-with-new-code install is the live proof: it should detect + download
-0.1.1 and show the ready banner.
+**Auto-update proven live, this machine now runs the released v0.1.1.**
+Installed a local 0.1.0 build, launched it, and its `update.log` shows:
+updater ready v0.1.0 → Found version 0.1.1 → downloading (differential
+1.5MB attempt sha-mismatched, fell back to full) → downloaded → ready →
+on quit auto-ran `tizomd-0.1.1-setup.exe --updated,/S`; the installed exe
+now reports `0.1.1.0`. `disableDifferentialDownload = true` was added so
+the flaky differential path never runs again (lands with the next release).
 
 ## Next
 
-- [ ] **PROOF (this session):** after CI publishes 0.1.1, install the local
-      `dist\tizomd-0.1.0-setup.exe`, launch the installed app, confirm
-      `update.log` shows "update available 0.1.1 → downloading → ready", then
-      let the user click Restart & install (installs CI-built 0.1.1, which has
-      the same updater code) — the first real install-to-update round trip
-- [ ] **User testing on Windows** — install the v0.1.1 release, double-click a
-      `.md` file (should open in TizoMD), set it as default app, exercise the
-      block editor, exports, theme toggle, Ctrl+N/O/S/Ctrl+, and report what
-      feels wrong
-- [ ] Verify session memory across a restart: dirty tab + crash (force-kill)
-      → reopen offers recovery; normal close → no recovery prompt
-- [ ] Verify the save guard against a real edit: open a file, change it in
-      another editor, hit Save → disk-changed banner, Restore/Discard works
-- [ ] Update the local v0.1.0 install to 0.1.1 via the in-app banner to keep
-      the machine on the current build
+- [ ] **User testing on Windows** — the .md association (double-click opens
+      here, settable as default app), block editor on real docs, exports,
+      theme toggle, Ctrl+N/O/S/Ctrl+, session restore, save guard — report
+      what feels wrong
+- [ ] Decide what goes in v0.1.2 (candidate: the differential-download flag
+      is already in main; README for the public repo; word count in status
+      bar; styled unsaved-confirm dialog)
 - [ ] macOS not built (out of scope); nothing in the stack blocks it later
 - [ ] `docs/gotchas.md`: move the Gotchas section out of `CLAUDE.md` once
       coding deepens

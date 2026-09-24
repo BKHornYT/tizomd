@@ -28,13 +28,21 @@ publishing: the packaged NSIS build embeds a correct `app-update.yml`
 produces that file — only real release targets do), and the v0.1.0 release's
 `latest.yml` is well-formed (version, sha512, size, path, releaseDate).
 Results: 29/29 tests + build green, version bumped 0.1.0 → 0.1.1, tag
-`v0.1.1` pushed, CI publishes Windows NSIS + zip and Linux AppImage. A local
-0.1.0 install is then used to prove the running flow: it checks the live
-feed, finds and downloads 0.1.1, and flips to ready (recorded in its own
-update.log).
+`v0.1.1` pushed, CI publishes Windows NSIS + zip and Linux AppImage. **Proof
+completed live:** a local 0.1.0 install (with the new logging) was silently
+installed to this PC, launched, and its `update.log` shows the full flow —
+updater ready v0.1.0 → Found version 0.1.1 → downloading → downloaded to
+`%LOCALAPPDATA%\tizomd-updater\pending` → ready → on close it ran
+`tizomd-0.1.1-setup.exe --updated,/S` and the installed exe now reports
+**0.1.1.0**. One flake recorded: the differential pull (1.5 MB) sha-mismatched
+and electron-updater fell back to the full download gracefully, so
+`disableDifferentialDownload = true` is set — updates always take the full
+installer now. The installed app also gained `.md` association and the black
+default from the code round.
 **Why:** "make a new release but first MAKE SURE AUTO UPDATE WORKS" — nothing
 had ever prompted an update because no release build was installed; the
-mechanism had to be proven, not assumed.
+mechanism had to be proven, not assumed. Considered the differential mismatch —
+a graceful, logged fallback — but the flag removes the flakiness entirely.
 **Files:** `src/main/update.ts`, `package.json`, `package-lock.json`
 
 ## 2026-09-24 — Black default, headerless UI, no DevTools, .md file association (OpenCode · big-pickle)

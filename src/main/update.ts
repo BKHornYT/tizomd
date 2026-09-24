@@ -59,6 +59,10 @@ export function initUpdates(fn: () => BrowserWindow | null): void {
     currentState = { ...currentState, status: 'idle', canSelfUpdate: true, reason: null }
     autoUpdater.autoDownload = true
     autoUpdater.autoInstallOnAppQuit = true
+    // The installer is small; a differential pull that sha-mismatches
+    // (seen in the 0.1.0 -> 0.1.1 proof run) just wastes a download before
+    // falling back. Always take the full file instead.
+    autoUpdater.disableDifferentialDownload = true
     autoUpdater.logger = {
       info: (m) => log(`info ${String(m ?? '')}`),
       warn: (m) => log(`warn ${String(m ?? '')}`),
