@@ -62,9 +62,13 @@ through GitHub suggestions from users.
   one rAF/frame (flush on unmount), renderer debounces the session-save IPC
   (250 ms) atop the main write debounce, `splitBlocks` only in preview/split.
   Full detail — `changes.md`.
-- **In progress:** owner feel check on the smoothness round (click-to-edit
-  stop-on-click-off, preview round-trip, scroll-mid-edit), then **v0.1.3** —
-  verified on `main`, not yet tagged.
+- **2026-09-24:** **v0.1.3 released** — the fixes + smoothness round below
+  (preview no longer blanks on view round-trip, scroll doesn't kill edits or
+  rebuild the doc, click-off commits and stops editing, deferred preview,
+  throttled scroll + session IPC). Installed app self-updates to it.
+- **In progress:** owner feel check on the installed v0.1.3 (click-to-edit
+  stop-on-click-off, preview round-trip, scroll-mid-edit), then the next
+  rounds from GitHub suggestions.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
   (SmartScreen warning); nothing user-tested beyond smoke boots. Watch-item:
   the *dev* instance (`electron .`) intermittently closed its window

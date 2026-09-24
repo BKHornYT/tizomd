@@ -2,21 +2,17 @@
 
 ## Now
 
-**Smoothness + click-to-edit round** (2026-09-24): fixed the preview that came
-back blank after a view round-trip (fresh-node render), stopped scroll from
-rebuilding the document or killing a block edit, made click-off (anywhere)
-commit and stop editing a block (and fixed the double-commit that could
-overwrite a *second* block with edit content), and smoothed the whole app —
-deferred preview renders, rAF-throttled scroll, renderer-side session IPC
-debounce. Verified (typecheck + 29/29 + build + boot). Not yet released.
+**v0.1.3 releasing** (2026-09-24): the fixes + smoothness round (preview
+blank-on-return fixed, click-off commits + stops editing, double-commit
+corruption fixed, deferred preview, throttled scroll + session IPC) was
+approved by the owner and is being tagged `v0.1.3` + pushed to CI. The
+installed app will self-update to it.
 
 ## Next
 
-- [ ] **Owner: feel the round on the running app** — click a line in nice
+- [ ] **Owner: feel the round on the installed v0.1.3** — click a line in nice
       mode, click off (commit + stop), switch views and back (preview not
       blank), scroll mid-edit (edit survives), typing in split stays smooth
-- [ ] **Release v0.1.3** when the feel is right — tag + push, CI publishes,
-      the installed app self-updates
 - [ ] Verify the installed app picked up v0.1.2 — check its
       `%APPDATA%\tizomd\logs\update.log` and that the exe reports 0.1.2.0
 - [ ] Watch (do not chase on this box): dev-instance `electron .` was closing

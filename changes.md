@@ -11,6 +11,14 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — v0.1.3 released (OpenCode · big-pickle)
+**What:** released the fixes + smoothness round above as **v0.1.3** (code
+already in `491a839`; this commit is the bump + docs). Tag pushed; CI
+publishes; the installed app updates to it in-app.
+**Why:** owner approval after feeling the round.
+**Files:** `package.json`, `package-lock.json`, `CLAUDE.md`, `changes.md`,
+`task.md`
+
 ## 2026-09-24 — Preview re-render fix + click-to-edit stop + smoothness pass (OpenCode · big-pickle)
 **What:** (1) **Preview no longer comes back blank** after switching to
 raw/split and back. Root cause: the preview div unmounts on every mode switch
