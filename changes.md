@@ -11,6 +11,38 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — v0.1.4 released (OpenCode · big-pickle)
+**What:** released the block-hopping round (below) as **v0.1.4**. Version
+bumped `0.1.3 → 0.1.4` in `package.json` + `package-lock.json`; tag `v0.1.4`
+pushed from the PC (Zima copy has no GitHub creds) — CI publishes the Windows
+NSIS + zip and the Linux AppImage with both update feeds; the installed app
+self-updates to it.
+**Why:** owner approved the smoother block-to-block editing and asked to publish
+through the PC.
+**Files:** `package.json`, `package-lock.json`, `CLAUDE.md`, `changes.md`,
+`task.md` (code itself is the round below)
+
+## 2026-09-24 — Block-to-block editing hops in one click (OpenCode · big-pickle)
+**What:** Clicking another line while a block editor is open now commits the
+current line *and* opens the clicked line in the same click — the edit doesn't
+just stop, it moves. Previously the hop only worked when the textarea's blur
+happened to commit and re-render before the click (React re-renders between
+the two events), otherwise the click landed with `editingIndex` still set and
+only committed/closed. `handlePreviewClick` now commits first (a guarded no-op
+if blur already did, so the double-commit corruption fix stays intact) and then
+`openBlock(clickedIndex)` — the open effect resolves the index against the
+freshest blocks on the next render, so a commit that shifted block counts still
+lands on a real block. Clicking whitespace still just commits and stops.
+**Why:** owner feel-report — "if i click out of the line to another line, the
+original line should go back to format. so it is more smooth." The commit +
+format part already worked; the missing smoothness was the second click needed
+to start editing the next block.
+**Files:** `src/renderer/src/editor/EditorPane.tsx`
+**Verified:** typecheck clean; 29/29 unit tests green (run via `npx -y
+node@24` — this Zima's system Node 22 is a build without TS type-stripping, so
+`npm test`'s `--experimental-strip-types` can't run here); `npm run build`
+green.
+
 ## 2026-09-24 — v0.1.3 released (OpenCode · big-pickle)
 **What:** released the fixes + smoothness round above as **v0.1.3** (code
 already in `491a839`; this commit is the bump + docs). Tag pushed; CI

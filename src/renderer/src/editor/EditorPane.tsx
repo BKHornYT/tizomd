@@ -260,11 +260,14 @@ export default function EditorPane({
       }
       if (editingIndex !== null) {
         // A click inside the block being edited is just a caret move — leave
-        // the edit open. Any other click (another block, whitespace, anything
-        // at all) stops editing: the blur also commits, so this is a guarded
-        // no-op when the blur already handled it.
+        // the edit open. Clicking another block commits this one and hops
+        // straight into the clicked block, so block-to-block editing is one
+        // click; any other click (whitespace, anything) just stops editing.
+        // The blur that precedes this click also commits, so commitBlock is a
+        // guarded no-op when that already ran.
         if (clickedIndex === editingIndex) return
         commitBlock()
+        if (clickedIndex >= 0) openBlock(clickedIndex)
         return
       }
       if (clickedIndex >= 0) openBlock(clickedIndex)

@@ -66,9 +66,13 @@ through GitHub suggestions from users.
   (preview no longer blanks on view round-trip, scroll doesn't kill edits or
   rebuild the doc, click-off commits and stops editing, deferred preview,
   throttled scroll + session IPC). Installed app self-updates to it.
-- **In progress:** owner feel check on the installed v0.1.3 (click-to-edit
-  stop-on-click-off, preview round-trip, scroll-mid-edit), then the next
-  rounds from GitHub suggestions.
+- **2026-09-24:** **Block-hopping round (released as v0.1.4).** Clicking
+  another line while a block is being edited now commits the current line,
+  formats it, and opens the clicked line in the *same* click — no second click
+  needed. (Reverses the "hopping dropped" note in the Key Decision below.)
+- **In progress:** owner feel check on the installed v0.1.4 (block-to-block
+  hop in one click, click-to-edit stop-on-click-off, preview round-trip,
+  scroll-mid-edit), then the next rounds from GitHub suggestions.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
   (SmartScreen warning); nothing user-tested beyond smoke boots. Watch-item:
   the *dev* instance (`electron .`) intermittently closed its window
@@ -208,9 +212,11 @@ Decisions worth not re-litigating, and why. Newest first.
   edit is committed and editing ends (`blur` already commits; the click
   handler is a guarded no-op so a blur+click pair never double-commits and
   can no longer overwrite a second block); a click *inside* the editing block
-  just moves the caret. Escape still cancels. Block-hopping without a click
-  break was dropped because committing a multi-line change shifts later block
-  indices.
+  just moves the caret. Escape still cancels. **Clicking another block hops
+  straight into it** — commit + open in the same click, because a hop that
+  needs a second click is a rough edge; the open resolves its block index
+  against the freshest blocks after the commit, so index shifts from a
+  multi-line edit can't corrupt content.
 - **2026-09-23 — Custom Tizo license, not MIT/GPL.** User decided "free to use
   but not steal." MIT lets anyone rebrand and sell it; GPL forces open-source
   reciprocity but the user wants the freedom to keep it closed if ever needed,

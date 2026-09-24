@@ -2,14 +2,16 @@
 
 ## Now
 
-**v0.1.3 releasing** (2026-09-24): the fixes + smoothness round (preview
-blank-on-return fixed, click-off commits + stops editing, double-commit
-corruption fixed, deferred preview, throttled scroll + session IPC) was
-approved by the owner and is being tagged `v0.1.3` + pushed to CI. The
-installed app will self-update to it.
+**v0.1.4 releasing** (2026-09-24): the block-hopping round (click another line
+while editing → it commits the current block, formats it, and opens the
+clicked block in one click) is approved and tagged `v0.1.4`; the PC is manned
+to push main + the tag, CI publishes, the installed app self-updates.
 
 ## Next
 
+- [ ] **Owner: feel the block-hopping round** — click a line, then click a
+      different line: it should commit the first, format it, and open the
+      second in one click (changes.md entry above)
 - [ ] **Owner: feel the round on the installed v0.1.3** — click a line in nice
       mode, click off (commit + stop), switch views and back (preview not
       blank), scroll mid-edit (edit survives), typing in split stays smooth
@@ -42,6 +44,12 @@ release is the real dist; CI does it and publishes.
       longer rebuilds document/destroys block edits, click-off commits + stops
       editing, double-commit corruption fixed, deferred preview renders,
       rAF-throttled scroll, renderer session IPC debounce, splitBlocks gated
+- [x] 2026-09-24 — v0.1.4 released: version bump 0.1.3 → 0.1.4, tag `v0.1.4`,
+      carries the block-hopping round; push + CI publish from the PC
+- [x] 2026-09-24 — Block-to-block editing hops in one click: clicking another
+      line commits the current block and opens the clicked block immediately
+      (guarded commit + `openBlock`, no double-commit, index resolved on fresh
+      blocks)
 - [x] 2026-09-24 — Typora-style restyle: neutral light-default theme, slim
       header (wordmark + theme only), flat tab strip, centered preview page,
       EditorPane status bar, Settings… menu item (Ctrl+,), FileTree/Settings
