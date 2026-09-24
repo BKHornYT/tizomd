@@ -2,33 +2,31 @@
 
 ## Now
 
-**v0.1.5 releasing** (2026-09-24): owner's feel check found the v0.1.4 block-hopping
-round only half-worked — clicking off without typing left the original block as
-a bare textarea (commit changed nothing → no re-render cleared the overlay), and
-the deferred preview rebuild wiped the block you hopped to. Both fixed in the
-round below (always-restore of the formatted block + re-attach after rebuild);
-released as v0.1.5 from the Zima's own `gh` login.
+**v0.1.6 releasing** (2026-09-24, autonomous session — owner not present): the
+editor polish round is coded, verified (typecheck, 56/56 tests, build), tagged
+and pushed: **Find in preview/split (Ctrl+F** — highlight, Enter/Shift+Enter
+jump, n/m counter, Esc clears), **split divider position now persists per tab
+in the session**, and **relative local images resolve against the document's
+folder**. Details — changes.md entry above.
 
 ## Next
 
-- [ ] **Owner: re-feel the block editing on the installed v0.1.5** — click a
-      line, type, click a different line: first block returns to format AND the
-      second opens in one click; also try clicking away with NO typing (it was
-      stuck before), and Escape mid-edit (should discard, not commit)
-- [ ] **Owner: feel the round on the installed v0.1.3** — click a line in nice
-      mode, click off (commit + stop), switch views and back (preview not
-      blank), scroll mid-edit (edit survives), typing in split stays smooth
-- [ ] Verify the installed app picked up v0.1.2 — check its
-      `%APPDATA%\tizomd\logs\update.log` and that the exe reports 0.1.2.0
-- [ ] Watch (do not chase on this box): dev-instance `electron .` was closing
-      its window gracefully after ~10–32 s, reproduced with both the v0.1.2
-      and current code (A/B via git stash) — no coded close path found; if it
-      ever reproduces on a clean machine, log `win.on('close')` and chase
-- [ ] Persist the split ratio in session memory per tab (currently in-memory
-      only, resets to 50% on reopen)
-- [ ] User testing on Windows — .md association double-click, block editor on
-      real docs, exports, theme toggle, Ctrl+N/O/S/Ctrl+,, session restore,
-      save guard — report what feels wrong
+- [ ] **Owner (when back): feel the v0.1.6 round** — Ctrl+F on a real doc
+      (highlight + jump + Esc), drag the split divider, switch tabs + restart
+      (divider comes back where you left it), and check a folder of `.md` with
+      sibling images renders them. Note: images won't show in `npm run dev`
+      (dev-server security), only in the installed/`dist` build.
+- [ ] Verify the installed app picked up v0.1.5 — `update.log` shows the
+      found → download → install loop, exe reports 0.1.6.0
+- [ ] **Document-level undo/redo (Ctrl+Z from the preview)** — the single
+      best next editing tool. Design: native textarea undo must keep working
+      in raw/split/block-editor, so menu `role:'undo'` stays for focused
+      editors; preview would need an App-level history (snapshot the doc text
+      before each commit) reached via the menu when nothing is focused.
+      Contained but subtle (the menu accelerator swallows the key, so this is
+      menu-surgery, not a DOM keydown) — do it as its own careful round.
+- [ ] Find next-match while typing should be live (it is); consider a
+      ⌘G/％F3 "find next" accelerator now that the bar exists
 - [ ] macOS not built (out of scope); nothing in the stack blocks it later
 - [ ] `docs/gotchas.md`: move the Gotchas section out of `CLAUDE.md` once
       coding deepens
@@ -47,6 +45,8 @@ release is the real dist; CI does it and publishes.
       longer rebuilds document/destroys block edits, click-off commits + stops
       editing, double-commit corruption fixed, deferred preview renders,
       rAF-throttled scroll, renderer session IPC debounce, splitBlocks gated
+- [x] 2026-09-24 — v0.1.6 released: editor polish (Find in preview Ctrl+F,
+      split divider persists per tab, local relative images render)
 - [x] 2026-09-24 — v0.1.5 released: block editor always returns to format
       (saved-HTML restore on every exit incl. no-change commits + Escape; fresh
       re-render on changed commits) and survives the deferred preview rebuild

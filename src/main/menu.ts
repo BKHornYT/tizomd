@@ -55,7 +55,9 @@ export function installMenu(getWindow: () => BrowserWindow | null): void {
       { role: 'cut' },
       { role: 'copy' },
       { role: 'paste' },
-      { role: 'selectAll' }
+      { role: 'selectAll' },
+      { type: 'separator' },
+      { label: 'Find', accelerator: 'CmdOrCtrl+F', click: send('edit:find') }
     ]
   }
 

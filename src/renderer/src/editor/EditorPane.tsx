@@ -2,7 +2,7 @@ import { useCallback, useEffect, useDeferredValue, useMemo, useRef, useState } f
 import type { JSX, MouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import DOMPurify from 'dompurify'
 import type { ViewMode } from '../../../shared/types'
-import { renderMarkdown, replaceLines, splitBlocks } from '../../../shared/markdown'
+import { renderMarkdown, findMatches, absolutizeImageSrc, replaceLines, splitBlocks } from '../../../shared/markdown'
 import { strings } from '../strings'
 import Icon from '../components/Icon'
 
@@ -10,6 +10,7 @@ type Notice = 'disk-changed' | 'recovery' | null
 
 interface EditorTab {
   key: string
+  path: string | null
   title: string
   text: string
   cursor: number
@@ -37,18 +38,26 @@ export default function EditorPane({
   tab,
   viewMode,
   fontSize,
+  initialSplit,
+  findSignal,
   onText,
   onCursor,
   onScroll,
-  onNotice
+  onNotice,
+  onSplitChange
 }: {
   tab: EditorTab
   viewMode: ViewMode
   fontSize: number
+  /** Split-divider position to seed this tab with (20–80). */
+  initialSplit: number
+  /** Bumped by the menu to request Find-in-preview (Ctrl+F). */
+  findSignal: number
   onText: (text: string) => void
   onCursor: (cursor: number) => void
   onScroll: (scroll: number) => void
   onNotice: (notice: Notice, action?: 'restore' | 'discard') => void
+  onSplitChange: (percent: number) => void
 }): JSX.Element {
   // Blocks drive the Typora click-to-edit overlay, which only exists in
   // preview/split; splitting a big document on every keystroke in raw mode
@@ -73,8 +82,142 @@ export default function EditorPane({
   viewModeRef.current = viewMode
   blocksRef.current = blocks
 
+  // --- find in preview --------------------------------------------------------
+  // Find searches the rendered document: marks are written into the preview DOM
+  // tree (mirrored here) whenever the document rebuilds, and navigation just
+  // moves the active mark. Editing blocks and the marks themselves are skipped.
+  const [findOpen, setFindOpen] = useState(false)
+  const [findQuery, setFindQuery] = useState('')
+  const [findIndex, setFindIndex] = useState(0)
+  const [findCount, setFindCount] = useState(0)
+  const findOpenRef = useRef(false)
+  const findQueryRef = useRef('')
+  const findIndexRef = useRef(0)
+  const findInputRef = useRef<HTMLInputElement | null>(null)
+  findOpenRef.current = findOpen
+  findQueryRef.current = findQuery
+  findIndexRef.current = findIndex
+
+  const applyFindMarks = useCallback((): void => {
+    const el = previewRef.current
+    if (!el) return
+    const query = findOpenRef.current ? findQueryRef.current : ''
+    for (const mk of Array.from(el.querySelectorAll('mark.find-hlt'))) {
+      const parent = mk.parentNode
+      if (parent) parent.insertBefore(document.createTextNode(mk.textContent ?? ''), mk)
+      mk.remove()
+    }
+    if (!query) {
+      setFindCount((c) => (c === 0 ? c : 0))
+      setFindIndex((i) => (i === 0 ? i : 0))
+      return
+    }
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node: Node): number => {
+        const p = node.parentElement
+        if (p && (p.closest('[data-tizo-editing]') || p.tagName === 'MARK')) {
+          return NodeFilter.FILTER_REJECT
+        }
+        return NodeFilter.FILTER_ACCEPT
+      }
+    })
+    const textNodes: Node[] = []
+    let node: Node | null
+    while ((node = walker.nextNode())) textNodes.push(node)
+    let count = 0
+    for (const textNode of textNodes) {
+      const text = textNode.textContent ?? ''
+      const matches = findMatches(text, query)
+      if (matches.length === 0) continue
+      const frag = document.createDocumentFragment()
+      let offset = 0
+      for (const m of matches) {
+        if (m.start > offset) frag.appendChild(document.createTextNode(text.slice(offset, m.start)))
+        const mark = document.createElement('mark')
+        mark.className = 'find-hlt' + (count === findIndexRef.current ? ' find-hlt-active' : '')
+        mark.textContent = text.slice(m.start, m.end)
+        frag.appendChild(mark)
+        offset = m.end
+        count++
+      }
+      if (offset < text.length) frag.appendChild(document.createTextNode(text.slice(offset)))
+      textNode.parentNode?.replaceChild(frag, textNode)
+    }
+    setFindCount((c) => (c === count ? c : count))
+    if (findIndexRef.current > 0 && findIndexRef.current >= count) {
+      setFindIndex(count > 0 ? count - 1 : 0)
+    }
+  }, [])
+
+  const findGoto = useCallback((dir: 1 | -1): void => {
+    setFindIndex((cur) => {
+      if (findCount <= 1) return 0
+      return (cur + dir + findCount) % findCount
+    })
+  }, [findCount])
+
+  const openFind = useCallback((): void => {
+    setFindOpen(true)
+    setFindIndex(0)
+    requestAnimationFrame(() => {
+      findInputRef.current?.focus()
+      findInputRef.current?.select()
+    })
+  }, [])
+
+  const closeFind = useCallback((): void => {
+    setFindOpen(false)
+    setFindQuery('')
+    setFindIndex(0)
+  }, [])
+
+  // Ctrl+F (menu → findSignal) opens find, or refocuses it; in raw mode it is
+  // a no-op beyond focussing the source editor (there is no preview to mark).
+  useEffect(() => {
+    if (findSignal === 0) return
+    if (viewMode === 'raw') {
+      rawRef.current?.focus()
+      return
+    }
+    if (findOpenRef.current) {
+      findInputRef.current?.focus()
+      findInputRef.current?.select()
+      return
+    }
+    openFind()
+  }, [findSignal, viewMode, openFind])
+
+  // Leaving for raw closes find; opening/closing it re-applies (or clears) marks.
+  useEffect(() => {
+    if (viewMode === 'raw' && findOpenRef.current) closeFind()
+  }, [viewMode, closeFind])
+
+  useEffect(() => {
+    applyFindMarks()
+  }, [findOpen, findQuery, applyFindMarks])
+
+  // Jump: mark the active match and bring it into view, without rebuilding the
+  // document (scrolling fires the throttled onScroll, which is fine — it just
+  // updates the read position).
+  useEffect(() => {
+    if (!findOpen || findCount === 0) return
+    const el = previewRef.current
+    if (!el) return
+    const marks = el.querySelectorAll('mark.find-hlt')
+    marks.forEach((mark, i) => mark.classList.toggle('find-hlt-active', i === findIndex))
+    const active = marks[findIndex]
+    if (active) active.scrollIntoView({ block: 'center' })
+  }, [findOpen, findIndex, findCount])
+
   // --- split ratio ---------------------------------------------------------
-  const [leftPercent, setLeftPercent] = useState(50)
+  // Seeded from the tab's persisted value; local while dragging, reported once
+  // on drag end so App can store it per-tab without a session write per pixel.
+  const [leftPercent, setLeftPercent] = useState(initialSplit)
+  const leftPercentRef = useRef(initialSplit)
+  const setLeftTotal = useCallback((value: number): void => {
+    leftPercentRef.current = value
+    setLeftPercent(value)
+  }, [])
   const [dragging, setDragging] = useState(false)
   const draggingRef = useRef(false)
   const splitRef = useRef<HTMLDivElement | null>(null)
@@ -94,24 +237,25 @@ export default function EditorPane({
       e.currentTarget.setPointerCapture(e.pointerId)
       draggingRef.current = true
       setDragging(true)
-      setLeftPercent(percentAt(e.clientX))
+      setLeftTotal(percentAt(e.clientX))
     },
-    [percentAt]
+    [percentAt, setLeftTotal]
   )
 
   const onDividerMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>): void => {
       if (!draggingRef.current) return
-      setLeftPercent(percentAt(e.clientX))
+      setLeftTotal(percentAt(e.clientX))
     },
-    [percentAt]
+    [percentAt, setLeftTotal]
   )
 
   const onDividerUp = useCallback((): void => {
     if (!draggingRef.current) return
     draggingRef.current = false
     setDragging(false)
-  }, [])
+    onSplitChange(leftPercentRef.current)
+  }, [onSplitChange])
 
   // --- rendered preview ----------------------------------------------------
   // Typing in a split/raw source editor updates the document every keystroke;
@@ -119,6 +263,11 @@ export default function EditorPane({
   // input responsive and do the render in idle time, so a big file still types
   // at full speed while the preview trails by a beat.
   const deferredText = useDeferredValue(tab.text)
+  // The folder the document lives in — where relative <img src> paths root.
+  const baseDir = useMemo(
+    () => (tab.path ? tab.path.replace(/[\\/][^\\/]*$/, '') : null),
+    [tab.path]
+  )
   const renderPreview = useCallback((): void => {
     const el = previewRef.current
     if (!el) return
@@ -136,7 +285,19 @@ export default function EditorPane({
     if (viewModeRef.current === 'preview' && idx !== null) {
       applyOverlayRef.current(idx)
     }
-  }, [deferredText])
+    // Local images: md files point at sibling images with relative paths, which
+    // the preview has no idea how to load. Root them against the document's folder.
+    if (baseDir) {
+      for (const img of Array.from(el.querySelectorAll('img'))) {
+        const src = img.getAttribute('src')
+        if (!src) continue
+        const abs = absolutizeImageSrc(src, baseDir)
+        if (abs !== null && abs !== src) img.setAttribute('src', abs)
+      }
+    }
+    // Re-apply find marks over the fresh tree (and skip any active editor block).
+    applyFindMarks()
+  }, [deferredText, baseDir, applyFindMarks])
 
   // The preview node unmounts on every mode switch (it lives at different tree
   // positions in preview vs split) and remounts blank. So: render when the node
@@ -425,7 +586,7 @@ export default function EditorPane({
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       {tab.notice && (
         <NoticeBar
           notice={tab.notice}
@@ -466,6 +627,55 @@ export default function EditorPane({
           </div>
         )}
       </div>
+
+      {findOpen && (viewMode === 'preview' || viewMode === 'split') && (
+        <div className="surface-3 absolute right-3 top-3 z-30 flex items-center gap-1 rounded-lg border border-subtle px-2 py-1.5 shadow-lg">
+          <input
+            ref={findInputRef}
+            value={findQuery}
+            onChange={(e) => {
+              setFindQuery(e.target.value)
+              setFindIndex(0)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                closeFind()
+              } else if (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault()
+                findGoto(e.key === 'Enter' && !e.shiftKey ? 1 : e.key === 'ArrowDown' ? 1 : -1)
+              }
+            }}
+            placeholder={strings.find.placeholder}
+            spellCheck={false}
+            className="w-36 bg-transparent text-xs text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]"
+          />
+          <span className="mono min-w-[2.4rem] text-center text-[11px] tabular-nums text-[var(--text-dim)]">
+            {findQuery ? `${findCount > 0 ? findIndex + 1 : 0}/${findCount}` : ''}
+          </span>
+          <button
+            onClick={() => findGoto(-1)}
+            title={strings.find.previous}
+            className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-dim)] transition hover:bg-[var(--border)] hover:text-[var(--text)]"
+          >
+            <Icon name="chevronDown" className="h-3 w-3 rotate-180" />
+          </button>
+          <button
+            onClick={() => findGoto(1)}
+            title={strings.find.next}
+            className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-dim)] transition hover:bg-[var(--border)] hover:text-[var(--text)]"
+          >
+            <Icon name="chevronDown" className="h-3 w-3" />
+          </button>
+          <button
+            onClick={closeFind}
+            title={strings.find.close}
+            className="flex h-5 w-5 items-center justify-center rounded text-[var(--text-dim)] transition hover:bg-[var(--border)] hover:text-[var(--text)]"
+          >
+            <Icon name="x" className="h-3 w-3" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

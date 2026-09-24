@@ -237,6 +237,18 @@ body {
   border-radius: 4px;
 }
 
+/* Find-in-preview highlight marks written into the preview DOM. */
+.md-body mark.find-hlt {
+  background: var(--accent-soft);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0;
+}
+.md-body mark.find-hlt-active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
 /* highlight.js token colours — One-Dark on dark, GitHub-ish on light. */
 :root.dark .md-body .hljs-keyword,
 :root.dark .md-body .hljs-selector-tag,

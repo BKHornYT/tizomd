@@ -11,6 +11,46 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — v0.1.6: editor polish round — find, divider memory, local images (OpenCode · big-pickle)
+**What:** three editor improvements, shipped as v0.1.6.
+(1) **Find in preview/split (Ctrl+F).** A slim search bar (top-right of the
+pane) with case-insensitive highlight marks written into the preview DOM,
+Enter/Shift+Enter (or arrows) to jump forward/back with the active match
+scrolled to centre, an `n/m` counter, and Esc/× to close (which unwraps the
+marks and leaves the document exactly as it was). Marks are re-applied on
+every deferred preview rebuild and skip an in-progress block editor, so find
+coexists with Typora-style editing; opening the bar commits any open block the
+same way clicking away does. Ctrl+F is a menu accelerator (`edit:find`), so it
+works from anywhere and can't double-fire against a DOM listener; in raw mode
+it just focuses the source editor (no preview to mark). Real limitations: a
+match split across an element boundary (`**bold**` around the needle) is not
+found — same behaviour as find-in-page, and the source stays the ground truth.
+(2) **Split divider position is remembered per tab.** The ratio only existed
+in-memory and reset to 50% on reopen; now the drag end reports into the tab
+and the session (`buffer.splitPercent`, additive — old sessions default to
+50), so `preview`↔`split` toggles and restarts restore the layout you left.
+(3) **Local images now render.** `.md` files point at sibling images with
+relative paths and the preview had no idea what folder the document was in, so
+`![alt](img/x.png)` gave a broken image. `absolutizeImageSrc` (pure, in
+shared/markdown.ts) roots relative/absolute file paths against the document's
+folder into a `file://` URL (Windows drive letters + posix, `..` climbing,
+`.`/empty segments, space/hash/`?` escaping) and passes `http(s)`/`data`/
+`file`/`blob`/protocol-relative through untouched; anything else
+(`javascript:`…) is dropped. Documented limitation: images render under the
+packaged app but typically show broken in `electron-vite dev` (dev-server
+origin blocks `file:` subresources by web security).
+**Why:** the queued next round after the owner approved the block-editing
+feel — find was the most-used missing piece, and the other two are "everything
+where you left it" promises plus a real rendering gap.
+**Files:** `src/shared/markdown.ts`, `src/renderer/src/editor/EditorPane.tsx`,
+`src/renderer/src/App.tsx`, `src/shared/types.ts`, `src/main/menu.ts`,
+`src/renderer/src/strings.ts`, `src/renderer/src/index.css`, new
+`scripts/test-editor.ts` (27 tests for find ranges + image resolution),
+`package.json`
+**Verified:** typecheck clean, 56/56 tests green (17 blocks + 27 editor + 5
+session + 7 guard), build green. Released as v0.1.6 from the Zima (git + gh);
+CI publishes and the installed app self-updates.
+
 ## 2026-09-24 — v0.1.5: block editor always returns to format (OpenCode · big-pickle)
 **What:** the v0.1.4 hop looked right but had two real holes from the deferred
 render design, both found by the owner's feel check ("you did not really fix

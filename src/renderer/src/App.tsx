@@ -27,6 +27,8 @@ interface Tab {
   savedText: string
   cursor: number
   scroll: number
+  /** Split-view divider position (20–80). */
+  splitPercent: number
   /** Guard snapshot: when the file was read from / written to disk. */
   loadedDisk: FileStat | null
   dirty: boolean
@@ -67,6 +69,7 @@ export default function App(): JSX.Element {
   const [showSettings, setShowSettings] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [findNonce, setFindNonce] = useState(0)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // --- theme ---------------------------------------------------------------
@@ -104,6 +107,7 @@ export default function App(): JSX.Element {
             savedText: '',
             cursor: sf.buffer.cursor,
             scroll: sf.buffer.scroll,
+            splitPercent: sf.buffer.splitPercent ?? 50,
             loadedDisk: null,
             dirty: sf.buffer.text !== '',
             exists: true,
@@ -126,6 +130,7 @@ export default function App(): JSX.Element {
             savedText: read.text,
             cursor: sf.buffer.cursor,
             scroll: sf.buffer.scroll,
+            splitPercent: sf.buffer.splitPercent ?? 50,
             loadedDisk: read.stat,
             dirty,
             exists: true,
@@ -144,6 +149,7 @@ export default function App(): JSX.Element {
             savedText: '',
             cursor: sf.buffer.cursor,
             scroll: sf.buffer.scroll,
+            splitPercent: sf.buffer.splitPercent ?? 50,
             loadedDisk: null,
             dirty: sf.buffer.text !== '',
             exists: false,
@@ -264,6 +270,9 @@ export default function App(): JSX.Element {
         case 'file:export-pdf':
           void exportActive('pdf')
           break
+        case 'edit:find':
+          setFindNonce((n) => n + 1)
+          break
         case 'view:toggle-sidebar':
           setSettings((s) => {
             if (!s) return s
@@ -327,6 +336,7 @@ export default function App(): JSX.Element {
       savedText: '',
       cursor: 0,
       scroll: 0,
+      splitPercent: 50,
       loadedDisk: null,
       dirty: false,
       exists: true,
@@ -357,6 +367,7 @@ export default function App(): JSX.Element {
         savedText: read.text,
         cursor: 0,
         scroll: 0,
+        splitPercent: 50,
         loadedDisk: read.stat,
         dirty: false,
         exists: true,
@@ -519,6 +530,9 @@ export default function App(): JSX.Element {
                   tab={active}
                   viewMode={viewMode}
                   fontSize={settings.editorFontSize}
+                  initialSplit={active.splitPercent}
+                  findSignal={findNonce}
+                  onSplitChange={(splitPercent) => patchTab(active.key, { splitPercent })}
                   onText={(text) => onText(active.key, text)}
                   onCursor={(cursor) => patchTab(active.key, { cursor })}
                   onScroll={(scroll) => patchTab(active.key, { scroll })}
@@ -624,6 +638,7 @@ export default function App(): JSX.Element {
       savedText: read.text,
       cursor: 0,
       scroll: 0,
+      splitPercent: 50,
       loadedDisk: read.stat,
       dirty: false,
       exists: true,

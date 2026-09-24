@@ -42,6 +42,8 @@ export interface BufferState {
   text: string
   cursor: number
   scroll: number
+  /** Split-view divider position, 20–80; undefined falls back to 50. */
+  splitPercent?: number
 }
 
 export interface SessionFile {
@@ -113,6 +115,7 @@ export type MenuAction =
   | 'file:close-tab'
   | 'file:export-html'
   | 'file:export-pdf'
+  | 'edit:find'
   | 'view:toggle-sidebar'
   | 'view:preview'
   | 'view:split'

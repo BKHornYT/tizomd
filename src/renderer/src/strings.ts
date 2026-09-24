@@ -25,6 +25,13 @@ export const strings = {
     rawMode: 'Raw'
   },
 
+  find: {
+    placeholder: 'Find',
+    previous: 'Previous match (Shift+Enter)',
+    next: 'Next match (Enter)',
+    close: 'Close'
+  },
+
   state: {
     modified: 'Modified',
     saved: 'Saved',

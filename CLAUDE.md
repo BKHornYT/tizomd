@@ -28,7 +28,8 @@ through GitHub suggestions from users.
   (preview / split / raw), file open + folder tree, save with the
   changed-on-disk guard, session memory across restarts, HTML + PDF export,
   auto-update scaffolding, settings + theme
-- **Verified:** `npm run typecheck` clean; `npm test` 29/29 green; `npm run
+- **Verified:** `npm run typecheck` clean; `npm test` green (4 suites: 17
+  blocks + 27 editor + 5 session + 7 guard = 56); `npm run
   build` green; live `npx electron .` boot with clean logs and a real
   `session.json` round-trip (2026-09-24)
 - **2026-09-24:** UI restyled to the Typora-simple look — **black default**, no
@@ -70,6 +71,12 @@ through GitHub suggestions from users.
   another line while a block is being edited now commits the current line,
   formats it, and opens the clicked line in the *same* click — no second click
   needed. (Reverses the "hopping dropped" note in the Key Decision below.)
+- **2026-09-24:** **v0.1.6 — editor polish round.** Find in preview/split
+  (Ctrl+F; highlight + Enter/Shift+Enter jump + n/m counter + Esc clears),
+  the split divider position now persists per tab in the session, and local
+  relative images resolve against the document's folder (`absolutizeImageSrc`
+  in shared). Released from the Zima after a fully autonomous session
+  (owner not present).
 - **2026-09-24:** **v0.1.5 — the round actually holds.** The owner's feel check
   ("you did not really fix it") showed the v0.1.4 hop half-worked: clicking off
   *without typing* left the original block stuck as a bare textarea (a
@@ -79,9 +86,10 @@ through GitHub suggestions from users.
   restores it on exit (fresh re-render when the text changed), and the rebuild
   re-attaches the active overlay. Released as v0.1.5 from the Zima itself (gh
   now installed + logged in here as BKHornYT — no PC needed to publish).
-- **In progress:** owner feel check on the installed v0.1.5 (block returns to
-  format on click-off with *and* without typing, one-click hop, Escape
-  discards), then the next rounds from GitHub suggestions.
+- **In progress:** owner feel check on the installed v0.1.6 (find in real
+  docs, divider memory across restart, sibling images in a folder of `.md`
+  — note images silently only work in the installed/`dist` build, not in
+  `npm run dev`), then the queued doc-level undo/redo round.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
   (SmartScreen warning); nothing user-tested beyond smoke boots. Watch-item:
   the *dev* instance (`electron .`) intermittently closed its window

@@ -85,3 +85,91 @@ export function replaceLines(src: string, start: number, end: number, replacemen
   const after = lines.slice(end)
   return [...before, ...replacement.split('\n'), ...after].join('\n')
 }
+
+// --- Find in preview ---------------------------------------------------------
+
+export interface TextMatch {
+  start: number
+  end: number
+}
+
+/**
+ * Case-insensitive, non-overlapping match positions of `query` in `text`.
+ * Used by the Find-in-preview highlighter over individual preview text nodes,
+ * so an element boundary (e.g. **bold** around a match) splits a hit — the
+ * same limitation Find-in-page has, and acceptable for a document editor.
+ */
+export function findMatches(text: string, query: string): TextMatch[] {
+  if (!query) return []
+  const needle = query.toLowerCase()
+  const hay = text.toLowerCase()
+  const out: TextMatch[] = []
+  let from = 0
+  while (from + needle.length <= hay.length) {
+    const at = hay.indexOf(needle, from)
+    if (at === -1) break
+    out.push({ start: at, end: at + needle.length })
+    from = at + needle.length
+  }
+  return out
+}
+
+// --- Local images in preview ------------------------------------------------
+
+/**
+ * Resolves an `<img src>` found inside a markdown file against the folder the
+ * file lives in, into something the browser can actually load. `.md` files
+ * refer to sibling images with relative paths; the preview has no idea what
+ * folder the document is in without this. Pure string work — no node:path or
+ * node:url, because the renderer bundle compiles against this file too.
+ *
+ * Rules:
+ * - http/https/data/file/blob schemes and protocol-relative `//` pass through.
+ * - Anything else is treated as a filesystem path and joined onto `baseDir`
+ *   (the directory the md file sits in), then returned as a `file://` URL.
+ * - Unsupported schemes (javascript:, vbscript:…) return null and are dropped.
+ */
+export function absolutizeImageSrc(src: string, baseDir: string | null): string | null {
+  const target = src.trim()
+  if (!target) return null
+  const drivePath = /^[a-z]:[\\/]/i.test(target)
+  if (!drivePath && /^[a-z][a-z0-9+.-]*:/i.test(target)) {
+    // A single-letter "scheme" is a Windows drive (D:\…), not a URL scheme —
+    // skip the whitelist for those and treat it as a filesystem path below.
+    const scheme = target.slice(0, target.indexOf(':')).toLowerCase()
+    const allowed = scheme === 'http' || scheme === 'https' || scheme === 'data' || scheme === 'file' || scheme === 'blob'
+    return allowed ? target : null
+  }
+  if (target.startsWith('//')) return target
+  // Untitled tab: no folder to root a relative path on. Leave the src alone so
+  // the browser can try its own base URL instead of us nulling a valid image.
+  if (!baseDir) return target
+
+  const base = baseDir.replace(/\\/g, '/').replace(/\/+$/, '')
+  const win = /^[a-z]:\//i.test(base)
+  let fsPath: string
+  if (drivePath) {
+    fsPath = dotResolve(target.replace(/\\/g, '/'))
+  } else if (target.startsWith('/')) {
+    // Root-relative: on Windows root it on the drive that holds the document.
+    fsPath = dotResolve(`${win ? base.slice(0, 2) : ''}${target}`)
+  } else {
+    fsPath = dotResolve(`${base}/${target.replace(/\\/g, '/')}`)
+  }
+  const enc = encodeURI(fsPath).replace(/#/g, '%23').replace(/\?/g, '%3F')
+  return win ? `file:///${enc}` : `file://${enc}`
+}
+
+function dotResolve(path: string): string {
+  const absolute = path.startsWith('/')
+  const out: string[] = []
+  for (const seg of path.split('/')) {
+    if (!seg || seg === '.') continue
+    if (seg === '..') {
+      if (out.length && out[out.length - 1] !== '..') out.pop()
+    } else {
+      out.push(seg)
+    }
+  }
+  return (absolute ? '/' : '') + out.join('/')
+}
