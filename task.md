@@ -2,24 +2,32 @@
 
 ## Now
 
-**v0.1.2 releasing** (2026-09-24): chrome + split overhaul tagged and pushed
-to CI — frameless window (custom titlebar, hidden native menu) and the split
-view fixed to a real side-by-side with a draggable divider. The installed
-v0.1.1 on this PC auto-updates to it in-app. Docs updated in the same commit.
+**Smoothness + click-to-edit round** (2026-09-24): fixed the preview that came
+back blank after a view round-trip (fresh-node render), stopped scroll from
+rebuilding the document or killing a block edit, made click-off (anywhere)
+commit and stop editing a block (and fixed the double-commit that could
+overwrite a *second* block with edit content), and smoothed the whole app —
+deferred preview renders, rAF-throttled scroll, renderer-side session IPC
+debounce. Verified (typecheck + 29/29 + build + boot). Not yet released.
 
 ## Next
 
-- [ ] **Verify the installed app picked up v0.1.2** — check its
-      `%APPDATA%\tizomd\logs\update.log` for found → download → ready (or
-      auto-install), and the exe reports 0.1.2.0
-- [ ] **Owner: feel the frameless window + split divider** — verdicts to
-      chase: titlebar drag/maximize/restore, split divider smoothness, edge
-      resize still working, any chrome regressions
-- [ ] **User testing on Windows** — .md association (double-click opens here),
-      block editor on real docs, exports, theme toggle, Ctrl+N/O/S/Ctrl+,
-      session restore, save guard — report what feels wrong
-- [ ] Ready for consideration: persist the split ratio in session memory per
-      tab (currently in-memory only, resets to 50% on reopen)
+- [ ] **Owner: feel the round on the running app** — click a line in nice
+      mode, click off (commit + stop), switch views and back (preview not
+      blank), scroll mid-edit (edit survives), typing in split stays smooth
+- [ ] **Release v0.1.3** when the feel is right — tag + push, CI publishes,
+      the installed app self-updates
+- [ ] Verify the installed app picked up v0.1.2 — check its
+      `%APPDATA%\tizomd\logs\update.log` and that the exe reports 0.1.2.0
+- [ ] Watch (do not chase on this box): dev-instance `electron .` was closing
+      its window gracefully after ~10–32 s, reproduced with both the v0.1.2
+      and current code (A/B via git stash) — no coded close path found; if it
+      ever reproduces on a clean machine, log `win.on('close')` and chase
+- [ ] Persist the split ratio in session memory per tab (currently in-memory
+      only, resets to 50% on reopen)
+- [ ] User testing on Windows — .md association double-click, block editor on
+      real docs, exports, theme toggle, Ctrl+N/O/S/Ctrl+,, session restore,
+      save guard — report what feels wrong
 - [ ] macOS not built (out of scope); nothing in the stack blocks it later
 - [ ] `docs/gotchas.md`: move the Gotchas section out of `CLAUDE.md` once
       coding deepens
@@ -33,6 +41,11 @@ release is the real dist; CI does it and publishes.
 
 <details><summary>Completed tasks</summary>
 
+- [x] 2026-09-24 — Preview re-render fix + click-to-edit stop + smoothness
+      round: fresh-node preview render (fixes blank-on-return), scroll no
+      longer rebuilds document/destroys block edits, click-off commits + stops
+      editing, double-commit corruption fixed, deferred preview renders,
+      rAF-throttled scroll, renderer session IPC debounce, splitBlocks gated
 - [x] 2026-09-24 — Typora-style restyle: neutral light-default theme, slim
       header (wordmark + theme only), flat tab strip, centered preview page,
       EditorPane status bar, Settings… menu item (Ctrl+,), FileTree/Settings

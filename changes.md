@@ -11,6 +11,46 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — Preview re-render fix + click-to-edit stop + smoothness pass (OpenCode · big-pickle)
+**What:** (1) **Preview no longer comes back blank** after switching to
+raw/split and back. Root cause: the preview div unmounts on every mode switch
+(it lives at different tree positions in preview vs split) and remounts blank,
+but the render effect only depended on `[renderPreview, tab.scroll]` — no dep
+changed on return, so the fresh empty node was never filled. It now renders
+when the node is fresh (`childElementCount === 0`) or the text changed, and
+restores scroll on a fresh mount only. (2) **Reading no longer rebuilds the
+document**: `tab.scroll` was an effect dep, so every wheel tick re-ran
+`innerHTML` — wasted work while reading, and an in-progress block edit was
+destroyed by a scroll. (3) **Click-to-edit fixed + smoothed**: committing was
+not idempotent — a blur *and* the click handler each ran `commitBlock()` with
+the same index, so clicking off could replace a *second* block with the edit
+content (the "clicked a line, it did something weird" report). commit is now
+guarded (clears its ref on entry). Clicking off a line — another block,
+whitespace, anywhere — now commits and stops editing (blur already commits;
+the handler is the guarded no-op / same-block caret move). The editing
+textarea is measured to the block's rendered height and auto-grows on input,
+so entering/leaving edit mode doesn't jump the layout. (4) **Perf**: preview
+text renders via `useDeferredValue` (split-mode typing stays 60 fps, markdown
+renders in idle time); scroll → parent is throttled to one rAF per frame with
+a flush on unmount; the renderer debounces the session `save` IPC (250 ms) on
+top of the main-side write debounce, so scroll/cursor events no longer send a
+serialized document across IPC per tick; `splitBlocks` is gated to preview/split
+(raw mode was splitting the doc on every keystroke for nothing).
+**Why:** user report: "normal view breaks after being on the other views and
+going back. and optimize the app as much as possible. we need it to be a
+smooth experience" — plus "if i click off the line it should stop editing that
+line" from live feel on the block editor.
+**Files:** `src/renderer/src/editor/EditorPane.tsx`, `src/renderer/src/App.tsx`
+**Verified:** typecheck, 29/29 tests, build, dev boot with `tizomd-smoke.md`
+(opens, becomes active, session round-trips `clean:true`).
+**Note (not a regression):** during verification the dev instance
+(`electron .` from `out/`) intermittently closed its window gracefully after
+~10–32 s on this box — reproduced with *both* the v0.1.2 code and this round
+via a git-stash A/B. No coded path closes the window in dev (updater is
+`isPackaged`-gated, no `app.quit` outside single-instance/window-all-closed),
+`clean:true` means a normal close. Most plausibly collisions on this live
+launcher box; watched but not chased further.
+
 ## 2026-09-24 — v0.1.2 released: frameless chrome + real split (OpenCode · big-pickle)
 **What:** Released the framed-next round as **v0.1.2** — no code changes
 beyond the bump (`0.1.1 → 0.1.2`); the release carries the work already

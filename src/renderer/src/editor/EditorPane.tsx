@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useDeferredValue, useMemo, useRef, useState } from 'react'
 import type { JSX, MouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import DOMPurify from 'dompurify'
 import type { ViewMode } from '../../../shared/types'
@@ -50,12 +50,15 @@ export default function EditorPane({
   onScroll: (scroll: number) => void
   onNotice: (notice: Notice, action?: 'restore' | 'discard') => void
 }): JSX.Element {
-  const blocks = useMemo(() => splitBlocks(tab.text), [tab.text])
+  // Blocks drive the Typora click-to-edit overlay, which only exists in
+  // preview/split; splitting a big document on every keystroke in raw mode
+  // is pure waste, so it is skipped there.
+  const showBlocks = viewMode === 'preview' || viewMode === 'split'
+  const blocks = useMemo(() => (showBlocks ? splitBlocks(tab.text) : []), [showBlocks, tab.text])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const previewRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const editingValue = useRef<string | null>(null)
-  const mountedScroll = useRef(false)
 
   // --- split ratio ---------------------------------------------------------
   const [leftPercent, setLeftPercent] = useState(50)
@@ -98,26 +101,44 @@ export default function EditorPane({
   }, [])
 
   // --- rendered preview ----------------------------------------------------
+  // Typing in a split/raw source editor updates the document every keystroke;
+  // rendering markdown is the expensive part. Deferring it lets React keep the
+  // input responsive and do the render in idle time, so a big file still types
+  // at full speed while the preview trails by a beat.
+  const deferredText = useDeferredValue(tab.text)
   const renderPreview = useCallback((): void => {
     const el = previewRef.current
     if (!el) return
-    const rawHtml = renderMarkdown(tab.text)
+    const rawHtml = renderMarkdown(deferredText)
     el.innerHTML = DOMPurify.sanitize(rawHtml, { USE_PROFILES: { html: true } })
     // Tag each top-level block so clicking maps back to splitBlocks order in a
     // way that survives any token/DOM mismatch.
     Array.from(el.children).forEach((child, i) => {
       child.setAttribute('data-block-index', String(i))
     })
-  }, [tab.text])
+  }, [deferredText])
 
+  // The preview node unmounts on every mode switch (it lives at different tree
+  // positions in preview vs split) and remounts blank. So: render when the node
+  // is fresh or the text changed, never on a scroll-only change — reading must
+  // not rebuild the document (or kill an in-progress block edit), and returning
+  // from split/raw must not come back empty.
+  const lastRenderedText = useRef<string | null>(null)
+  const restoreScrollNext = useRef(false)
   useEffect(() => {
-    renderPreview()
-    // A freshly opened tab restores its previous scroll.
-    if (!mountedScroll.current && tab.scroll > 0 && previewRef.current) {
-      previewRef.current.scrollTop = tab.scroll
-      mountedScroll.current = true
+    const el = previewRef.current
+    if (!el || (viewMode !== 'preview' && viewMode !== 'split')) return
+    const fresh = el.childElementCount === 0
+    if (fresh || lastRenderedText.current !== deferredText) {
+      renderPreview()
+      lastRenderedText.current = deferredText
+      restoreScrollNext.current = fresh
     }
-  }, [renderPreview, tab.scroll])
+    if (restoreScrollNext.current) {
+      el.scrollTop = tab.scroll
+      restoreScrollNext.current = false
+    }
+  }, [viewMode, tab.scroll, deferredText, renderPreview])
 
   // --- open a block editor over the preview ---------------------------------
   useEffect(() => {
@@ -136,6 +157,9 @@ export default function EditorPane({
       setEditingIndex(null)
       return
     }
+    // Fit the edit surface to the block that was there: measure before clearing
+    // and re-grow on input, so entering/leaving edit mode never jumps the layout.
+    const settledHeight = Math.max(child.getBoundingClientRect().height, 24)
     child.setAttribute('data-tizo-editing', '1')
     child.innerHTML = ''
     const ta = document.createElement('textarea')
@@ -146,10 +170,17 @@ export default function EditorPane({
       (child.nodeName === 'PRE' ? 'mono text-[0.88em]' : '')
     ta.style.fontSize = 'inherit'
     ta.style.lineHeight = 'inherit'
+    ta.style.whiteSpace = 'pre-wrap'
+    ta.style.overflow = 'hidden'
+    const autosize = (): void => {
+      ta.style.height = 'auto'
+      ta.style.height = `${Math.max(settledHeight, ta.scrollHeight)}px`
+    }
     child.appendChild(ta)
     textareaRef.current = ta
     ta.addEventListener('input', () => {
       editingValue.current = ta.value
+      autosize()
     })
     ta.addEventListener('blur', () => commitBlock())
     ta.addEventListener('keydown', (event) => {
@@ -167,6 +198,7 @@ export default function EditorPane({
       }
     })
     ta.focus()
+    autosize()
     if (child.nodeName === 'PRE') {
       ta.select()
     } else {
@@ -174,17 +206,25 @@ export default function EditorPane({
     }
   }, [editingIndex, viewMode, blocks])
 
+  // Idempotent: clearing textareaRef on entry means a blur-then-click pair (or
+  // two events for one physical click) can safely both call commitBlock — the
+  // second one is a no-op instead of replacing a second, wrong block.
   const commitBlock = useCallback((): void => {
-    const block = editingIndex !== null ? blocks[editingIndex] : null
     const ta = textareaRef.current
-    if (!block || !ta) return
+    if (!ta) return
+    textareaRef.current = null
+    const block = editingIndex !== null ? blocks[editingIndex] : null
+    if (!block) {
+      setEditingIndex(null)
+      editingValue.current = null
+      return
+    }
     const next = ta.value
     if (next !== block.text) {
       onText(replaceLines(tab.text, block.start, block.end, next))
     }
     setEditingIndex(null)
     editingValue.current = null
-    textareaRef.current = null
   }, [editingIndex, blocks, tab.text, onText])
 
   const cancelBlock = useCallback((): void => {
@@ -206,45 +246,78 @@ export default function EditorPane({
   const handlePreviewClick = useCallback(
     (event: MouseEvent): void => {
       if (viewMode !== 'preview') return
-      if (editingIndex !== null) {
-        // Commit first; the block layout may shift, so the clicked index is
-        // only trusted for a fresh click.
-        commitBlock()
-        return
-      }
       const el = previewRef.current
       if (!el) return
       let target = event.target as HTMLElement | null
+      let clickedIndex = -1
       while (target && target !== el) {
         const idx = Number(target.getAttribute?.('data-block-index') ?? NaN)
         if (Number.isInteger(idx) && idx >= 0) {
-          openBlock(idx)
-          return
+          clickedIndex = idx
+          break
         }
         target = target.parentElement
       }
+      if (editingIndex !== null) {
+        // A click inside the block being edited is just a caret move — leave
+        // the edit open. Any other click (another block, whitespace, anything
+        // at all) stops editing: the blur also commits, so this is a guarded
+        // no-op when the blur already handled it.
+        if (clickedIndex === editingIndex) return
+        commitBlock()
+        return
+      }
+      if (clickedIndex >= 0) openBlock(clickedIndex)
     },
     [viewMode, editingIndex, commitBlock, openBlock]
   )
 
   // --- raw / split source editor --------------------------------------------
-  const mountedCursor = useRef(false)
   const rawRef = useRef<HTMLTextAreaElement | null>(null)
+  const lastRawNode = useRef<HTMLTextAreaElement | null>(null)
 
   useEffect(() => {
     if (viewMode === 'preview') return
     const ra = rawRef.current
-    if (ra) {
-      ra.style.fontSize = `${fontSize}px`
-      if (!mountedCursor.current && tab.cursor > 0) {
-        ra.setSelectionRange(tab.cursor, tab.cursor)
-        mountedCursor.current = true
-      }
-      if (!mountedScroll.current && tab.scroll > 0) {
-        ra.scrollTop = tab.scroll
-      }
+    if (!ra) return
+    ra.style.fontSize = `${fontSize}px`
+    // The textarea unmounts on mode switches (raw vs split live at different
+    // tree positions); only a freshly mounted node takes the saved cursor/scroll.
+    // Restoring on every change would fight the live position.
+    if (ra !== lastRawNode.current) {
+      lastRawNode.current = ra
+      ra.setSelectionRange(tab.cursor, tab.cursor)
+      ra.scrollTop = tab.scroll
     }
   }, [viewMode, fontSize, tab.cursor, tab.scroll])
+
+  // --- throttled scroll → parent -------------------------------------------
+  // scrollTop changes fire per wheel-tick/scrollbar-drag; batching to one
+  // requestAnimationFrame per frame keeps the session write down to ~60/s (and
+  // the renderer debounce in App stops the IPC storm entirely). The final value
+  // is flushed on unmount so switching tabs never loses the read position.
+  const onScrollRef = useRef(onScroll)
+  onScrollRef.current = onScroll
+  const scrollPending = useRef<number | null>(null)
+  const scrollFrame = useRef<number | null>(null)
+  const queueScroll = useCallback((value: number): void => {
+    scrollPending.current = value
+    if (scrollFrame.current !== null) return
+    scrollFrame.current = requestAnimationFrame(() => {
+      scrollFrame.current = null
+      const v = scrollPending.current
+      if (v !== null) onScrollRef.current(v)
+    })
+  }, [])
+  useEffect(
+    () => () => {
+      if (scrollFrame.current !== null) cancelAnimationFrame(scrollFrame.current)
+      scrollFrame.current = null
+      const v = scrollPending.current
+      if (v !== null) onScrollRef.current(v)
+    },
+    []
+  )
 
   const rawEditor = (
     <textarea
@@ -255,7 +328,7 @@ export default function EditorPane({
       style={{ fontSize: `${fontSize}px` }}
       onChange={(e) => onText(e.target.value)}
       onSelect={(e) => onCursor(e.currentTarget.selectionStart)}
-      onScroll={(e) => onScroll(e.currentTarget.scrollTop)}
+      onScroll={(e) => queueScroll(e.currentTarget.scrollTop)}
     />
   )
 
@@ -266,7 +339,7 @@ export default function EditorPane({
       onClick={handlePreviewClick}
       className="md-body mx-auto h-full w-full max-w-[46rem] overflow-y-auto px-8 py-6"
       style={{ fontSize: `${fontSize}px` }}
-      onScroll={(e) => onScroll(e.currentTarget.scrollTop)}
+      onScroll={(e) => queueScroll(e.currentTarget.scrollTop)}
     />
   )
 

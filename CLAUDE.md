@@ -48,11 +48,29 @@ through GitHub suggestions from users.
   slim 34px TitleBar = drag region + M mark + custom min/max/close; native
   menu bar hidden, accelerators kept) and the split view fixed to a real
   side-by-side with a draggable divider. Installed app auto-updates to it.
-- **In progress:** hands-on user testing on the installed v0.1.2 — the feel
-  of the frameless window and the split divider; any rough edges the code
-  pass cannot see; then the next rounds from GitHub suggestions.
+- **2026-09-24:** **Fixes + smoothness round (unreleased).** (1) Preview no
+  longer comes back blank after a preview↔raw/split round-trip — the preview
+  node unmounts per mode, so the render effect now treats an empty node as
+  "must render" instead of waiting for a text dep; scroll restore happens on a
+  fresh mount only. (2) Scrolling no longer rebuilds the preview document or
+  kills an in-progress block edit (`tab.scroll` is no longer a render dep).
+  (3) Click-to-edit: clicking off a line — anywhere — commits and stops
+  editing; a click inside the editing block just moves the caret; the edit
+  textarea is sized to the block and auto-grows (no layout jump). Also fixed a
+  double-commit that could overwrite a *second* block with the edit content.
+  (4) Perf: preview text via `useDeferredValue`, scroll → parent throttled to
+  one rAF/frame (flush on unmount), renderer debounces the session-save IPC
+  (250 ms) atop the main write debounce, `splitBlocks` only in preview/split.
+  Full detail — `changes.md`.
+- **In progress:** owner feel check on the smoothness round (click-to-edit
+  stop-on-click-off, preview round-trip, scroll-mid-edit), then **v0.1.3** —
+  verified on `main`, not yet tagged.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
-  (SmartScreen warning); nothing user-tested beyond smoke boots
+  (SmartScreen warning); nothing user-tested beyond smoke boots. Watch-item:
+  the *dev* instance (`electron .`) intermittently closed its window
+  gracefully after ~10–32 s on this box — reproduced with both the v0.1.2 code
+  and the current code (git-stash A/B), no coded close path exists in dev, so
+  it is treated as live-box environment noise, not a regression.
 
 ## Stack (implemented)
 
@@ -179,6 +197,16 @@ TizoMD/
 
 Decisions worth not re-litigating, and why. Newest first.
 
+- **2026-09-24 — Block edit is click-to-fix, not a stay-in mode: clicking off
+  commits and stops.** The first rough edge found in live feel ("clicked a
+  line, it did something weird"). Contract now: click a block → edit it; click
+  *anywhere* else (another block, whitespace, outside the preview) → that
+  edit is committed and editing ends (`blur` already commits; the click
+  handler is a guarded no-op so a blur+click pair never double-commits and
+  can no longer overwrite a second block); a click *inside* the editing block
+  just moves the caret. Escape still cancels. Block-hopping without a click
+  break was dropped because committing a multi-line change shifts later block
+  indices.
 - **2026-09-23 — Custom Tizo license, not MIT/GPL.** User decided "free to use
   but not steal." MIT lets anyone rebrand and sell it; GPL forces open-source
   reciprocity but the user wants the freedom to keep it closed if ever needed,

@@ -165,7 +165,13 @@ export default function App(): JSX.Element {
     }
   }, [])
 
-  // --- live session persistence (keystroke-period, debounced on the main side)
+  // --- live session persistence ----------------------------------------------
+  // Debounced in the renderer too: scroll/cursor changes fire up to ~60/s, and
+  // echoing each one through IPC (with a full serialized document) is the single
+  // biggest smoothness cost while reading. The main side still debounces the
+  // disk write; this only caps how often a document travels across the bridge.
+  const sessionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingSession = useRef<SessionData | null>(null)
   useEffect(() => {
     if (!settings) return
     const data: SessionData = {
@@ -181,13 +187,23 @@ export default function App(): JSX.Element {
         recovery: t.recovery
       }
     }
-    window.tizomd.session.save(data)
+    pendingSession.current = data
+    if (sessionTimer.current) return
+    sessionTimer.current = setTimeout(() => {
+      sessionTimer.current = null
+      const p = pendingSession.current
+      if (p) window.tizomd.session.save(p)
+    }, 250)
   }, [tabs, activeKey, settings])
 
-  // Flush clean on close. `beforeunload` fires for normal closes; the invoke is
-  // synchronous on the main side, so the final state lands on disk.
+  // Flush clean on close. `beforeunload` fires for normal closes; the invokes
+  // are handled in order on the main side (save lands in the cache, then the
+  // clean write flushes it to disk), so the final state never contains a stale
+  // buffer.
   useEffect(() => {
     const flush = (): void => {
+      const p = pendingSession.current
+      if (p) window.tizomd.session.save(p)
       void window.tizomd.session.flushClean()
     }
     window.addEventListener('beforeunload', flush)
