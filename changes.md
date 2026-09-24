@@ -11,6 +11,32 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — v0.1.1: updater hardened + released (OpenCode · big-pickle)
+**What:** Pre-release auto-update audit found two real defects in
+`src/main/update.ts` and fixed both, then released as v0.1.1. (1)
+`autoUpdater.logger = null` meant any future update failure was invisible and
+undiagnosable — replaced with a real file logger writing to
+`<logs>/update.log` (packaged builds only), so a silent failure on a user's
+machine is readable rather than a mystery. (2) The bare `void
+autoUpdater.checkForUpdates()` promise could reject (feed unreachable, e.g.
+app launched offline) and Node's default turns an unhandled rejection into a
+process crash — now `.catch()`ed, network cold starts are safe. Lifecycle
+lines are logged too (available → downloading → downloaded → ready), so an
+update's whole path leaves a trace. Also verified the feed end-to-end before
+publishing: the packaged NSIS build embeds a correct `app-update.yml`
+(provider github, owner BKHornYT, repo tizomd; note a `dir` target never
+produces that file — only real release targets do), and the v0.1.0 release's
+`latest.yml` is well-formed (version, sha512, size, path, releaseDate).
+Results: 29/29 tests + build green, version bumped 0.1.0 → 0.1.1, tag
+`v0.1.1` pushed, CI publishes Windows NSIS + zip and Linux AppImage. A local
+0.1.0 install is then used to prove the running flow: it checks the live
+feed, finds and downloads 0.1.1, and flips to ready (recorded in its own
+update.log).
+**Why:** "make a new release but first MAKE SURE AUTO UPDATE WORKS" — nothing
+had ever prompted an update because no release build was installed; the
+mechanism had to be proven, not assumed.
+**Files:** `src/main/update.ts`, `package.json`, `package-lock.json`
+
 ## 2026-09-24 — Black default, headerless UI, no DevTools, .md file association (OpenCode · big-pickle)
 **What:** Four adjustments from the user's first-use notes and requests.
 (1) **Black is the default theme again** — `DEFAULT_SETTINGS.theme` back to
