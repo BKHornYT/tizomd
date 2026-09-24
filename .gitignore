@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+*.log
+.DS_Store
+.env
+.env.local
+*.pfx
+# build/iconsrc is kept: it is the source for scripts/build-icon.mjs

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Scripts only from ourselves; inline styles allowed (Tailwind's
+      injected-into-DOM styles and React inline styles). `img-src` includes
+      file: because a markdown document may reference images by relative path
+      — packaged, the page itself is a file:// origin so those resolve
+      naturally. Raw HTML inside .md never executes: the parser escapes it and
+      the preview is additionally sanitized by DOMPurify before injection.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file: https:; connect-src 'self' ws://localhost:* http://localhost:*"
+    />
+    <title>TizoMD</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

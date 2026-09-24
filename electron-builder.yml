@@ -1,0 +1,68 @@
+appId: com.bkhorn.tizomd
+productName: TizoMD
+copyright: Copyright © 2026 BKHornYT
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - out/**
+  - '!**/*.map'
+  - '!**/*.ts'
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  artifactName: ${name}-${version}-${arch}.${ext}
+  # Unsigned for now — users will see a SmartScreen warning. Signing config
+  # slots in here later without touching anything else.
+
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  oneClick: false
+  perMachine: false # per-user install needs no admin rights
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: TizoMD
+  deleteAppDataOnUninstall: false # keep sessions and settings
+
+# A portable exe is deliberately absent. TizoMD self-updates on every build via
+# electron-updater (NSIS + zip on Windows, AppImage on Linux), and a portable
+# target exists on Windows only as a way to NOT be updatable — adding it here
+# would create builds that sit silently one behind. One less code path is the
+# whole point. See CLAUDE.md "Key Decisions".
+
+# AppImage only, and that is a deliberate narrowing rather than a starting point.
+# electron-updater can self-update an AppImage; it cannot update a deb, rpm or
+# snap. Self-updating is the whole reason this app exists in its current shape,
+# so a Linux target that can never fix itself would be shipping the promise
+# without the mechanism.
+#
+# The icon is the 256px source: electron-builder's 512 minimum applies only to
+# macOS .icns, and Linux takes 256 — so no upscaling and no soft icon.
+linux:
+  icon: build/iconsrc/icon-256.png
+  category: Office
+  synopsis: Markdown viewer and editor
+  description: >-
+    A quiet markdown viewer and editor with Typora-style block editing,
+    session memory and PDF export.
+  target:
+    - target: AppImage
+      arch: [x64]
+  artifactName: ${name}-${version}-${arch}.${ext}
+
+publish:
+  provider: github
+  owner: BKHornYT
+  repo: tizomd
+  # electron-builder defaults to a draft release. Drafts are invisible to
+  # electron-updater, so a "successful" release would sit there updating nobody
+  # until someone remembered to press Publish.
+  releaseType: release

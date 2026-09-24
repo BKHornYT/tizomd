@@ -1,0 +1,62 @@
+TizoMD Source-Available License
+
+Copyright (c) 2026 BKHornYT / EFM Network
+
+TizoMD is free to use, but not to steal. The source code and the application
+built from it are released under this license: you may use the software freely,
+but the Tizo/EFM identity stays attached, commercial resale is prohibited, and
+modified public redistribution requires permission.
+
+TERMS OF USE
+
+1. Permitted use
+   You may download, install, use, copy and modify the software for any
+   personal or internal purpose. This includes reading, studying and modifying
+   the source code for your own use, and self-hosting the software for
+   yourself or your own organisation.
+
+2. No commercial redistribution
+   You may not sell the software, charge for it, or redistribute it as part of
+   any product or service that is offered for sale or for a fee, whether in
+   its original form or modified. Internal or personal use, including use
+   within a business for its own purposes, is not affected by this clause.
+
+3. No rebranding
+   The Tizo and EFM identity — the names "TizoMD", "Tizo", "EFM Network",
+   the logos and the visual identity — stays attached to this software. You
+   may not remove, replace or conceal these marks on copies you distribute,
+   nor release the software or a derivative of it under a name or branding
+   that is not your own clear product identity, in a way that misleads any
+   recipient into believing the software is a different product or is
+   affiliated with anyone but its original author.
+
+4. Modified forks
+   Redistributing a modified fork publicly — for example, publishing a
+   modified copy of this repository or a build derived from it — requires the
+   written permission of the copyright holder. Unmodified copies of the
+   software distributed verbatim are covered by clause 2 and 3.
+
+5. Contributions
+   Opening issues, suggesting features and opening pull requests in the
+   official repository is encouraged. By submitting a contribution you agree
+   that your contribution may be used, modified and redistributed under this
+   license, and that the copyright holder may apply a different license to the
+   software at a later date while this license continues to govern your use of
+   earlier versions.
+
+6. No warranty
+   THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+   IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+This license is enforced by its terms, not by any technical lock. It does not
+require you to share your modifications, and nothing here grants you a right
+to the Tizo/EFM trademarks beyond using them to identify that the software IS
+TizoMD.
+
+Questions about permission beyond these terms: open an issue in the repository
+or contact the copyright holder.

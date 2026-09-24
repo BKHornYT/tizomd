@@ -1,0 +1,327 @@
+@import 'tailwindcss';
+
+/**
+ * TizoMD chrome is meant to disappear: a plain page, thin tabs, a slim status
+ * strip. Typora is the reference — the editor is a paper surface, not an app
+ * cockpit. The one Tizo touch left is the small M mark in the empty/About
+ * spots; everything else is neutral so the text does the talking.
+ */
+
+/**
+ * Light is the default (paper); dark is the Typora-night mood. Every colour is
+ * a semantic variable so a component never hardcodes a theme.
+ */
+:root,
+:root.light {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f6f7; /* sidebar, subtle panels */
+  --surface-3: #eceef0; /* active tab fill, inline-code tint */
+  --code-bg: #f3f4f6; /* code fences */
+  --border: #e2e6eb;
+  --text: #30363d;
+  --text-dim: #8b949e;
+  --accent: #3b72c4; /* calm blue, Typora-ish */
+  --accent-soft: rgb(59 114 196 / 0.1);
+  --selection: rgb(59 114 196 / 0.22);
+  --danger: #c0392b;
+}
+
+:root.dark {
+  --bg: #1d1f22;
+  --surface: #1f2126;
+  --surface-2: #24272c;
+  --surface-3: #2c3037;
+  --code-bg: #23262b;
+  --border: rgb(255 255 255 / 0.08);
+  --text: #d7dadf;
+  --text-dim: #8f95a0;
+  --accent: #7fb0e0;
+  --accent-soft: rgb(127 176 224 / 0.14);
+  --selection: rgb(127 176 224 / 0.28);
+  --danger: #e06c75;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family:
+    'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+  background: var(--bg);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+::selection {
+  background: var(--selection);
+}
+
+.app-bg {
+  background: var(--bg);
+}
+.surface {
+  background: var(--surface);
+}
+.surface-2 {
+  background: var(--surface-2);
+}
+.surface-3 {
+  background: var(--surface-3);
+}
+.border-subtle {
+  border-color: var(--border);
+}
+
+/* Editor surfaces should be selectable; the rest of the chrome stays not. */
+.selectable,
+.md-body,
+.raw-editor {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.mono {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, 'SF Mono', monospace;
+}
+
+/* --- Scrollbars, themed ------------------------------------------------ */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+  background-clip: content-box;
+}
+
+/* --- Markdown preview typography --------------------------------------- */
+.md-body {
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+.md-body > *:first-child {
+  margin-top: 0;
+}
+.md-body h1,
+.md-body h2,
+.md-body h3,
+.md-body h4,
+.md-body h5,
+.md-body h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+  margin: 1.3em 0 0.5em;
+}
+.md-body h1 {
+  font-size: 1.9em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border);
+}
+.md-body h2 {
+  font-size: 1.45em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border);
+}
+.md-body h3 {
+  font-size: 1.2em;
+}
+.md-body h4 {
+  font-size: 1em;
+}
+.md-body h5,
+.md-body h6 {
+  font-size: 0.9em;
+}
+.md-body p {
+  margin: 0.6em 0;
+  color: var(--text);
+}
+.md-body a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.md-body a:hover {
+  text-decoration: underline;
+}
+.md-body ul,
+.md-body ol {
+  padding-left: 1.6em;
+  margin: 0.6em 0;
+}
+.md-body li {
+  margin: 0.2em 0;
+  color: var(--text);
+}
+.md-body blockquote {
+  margin: 1em 0;
+  padding: 0.1em 1.1em;
+  border-left: 3px solid var(--border);
+  color: var(--text-dim);
+}
+.md-body code {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, 'SF Mono', monospace;
+  font-size: 0.9em;
+}
+.md-body :not(pre) > code {
+  background: var(--surface-3);
+  color: inherit;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+.md-body pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+.md-body table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  display: block;
+  overflow-x: auto;
+}
+.md-body th,
+.md-body td {
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  text-align: left;
+}
+.md-body th {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+.md-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
+}
+.md-body img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+/* highlight.js token colours — One-Dark on dark, GitHub-ish on light. */
+:root.dark .md-body .hljs-keyword,
+:root.dark .md-body .hljs-selector-tag,
+:root.dark .md-body .hljs-literal {
+  color: #c678dd;
+}
+:root.dark .md-body .hljs-string,
+:root.dark .md-body .hljs-regexp,
+:root.dark .md-body .hljs-addition {
+  color: #98c379;
+}
+:root.dark .md-body .hljs-number {
+  color: #d19a66;
+}
+:root.dark .md-body .hljs-comment,
+:root.dark .md-body .hljs-quote {
+  color: #7d8799;
+  font-style: italic;
+}
+:root.dark .md-body .hljs-title,
+:root.dark .md-body .hljs-section {
+  color: #61afef;
+}
+:root.dark .md-body .hljs-attr,
+:root.dark .md-body .hljs-variable {
+  color: #d19a66;
+}
+:root.dark .md-body .hljs-built_in,
+:root.dark .md-body .hljs-type {
+  color: #e5c07b;
+}
+:root.dark .md-body .hljs-tag,
+:root.dark .md-body .hljs-name,
+:root.dark .md-body .hljs-selector-class,
+:root.dark .md-body .hljs-selector-id {
+  color: #e06c75;
+}
+:root.dark .md-body .hljs-symbol,
+:root.dark .md-body .hljs-bullet {
+  color: #56b6c2;
+}
+:root.dark .md-body .hljs-meta,
+:root.dark .md-body .hljs-link {
+  color: #61afef;
+}
+
+:root.light .md-body .hljs-keyword,
+:root.light .md-body .hljs-selector-tag,
+:root.light .md-body .hljs-literal {
+  color: #d73a49;
+}
+:root.light .md-body .hljs-string,
+:root.light .md-body .hljs-regexp,
+:root.light .md-body .hljs-addition {
+  color: #032f62;
+}
+:root.light .md-body .hljs-number {
+  color: #005cc5;
+}
+:root.light .md-body .hljs-comment,
+:root.light .md-body .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+:root.light .md-body .hljs-title,
+:root.light .md-body .hljs-section {
+  color: #6f42c1;
+}
+:root.light .md-body .hljs-attr,
+:root.light .md-body .hljs-variable {
+  color: #22863a;
+}
+:root.light .md-body .hljs-built_in,
+:root.light .md-body .hljs-type {
+  color: #e36209;
+}
+:root.light .md-body .hljs-tag,
+:root.light .md-body .hljs-name,
+:root.light .md-body .hljs-selector-class,
+:root.light .md-body .hljs-selector-id {
+  color: #22863a;
+}
+:root.light .md-body .hljs-symbol,
+:root.light .md-body .hljs-bullet {
+  color: #005cc5;
+}
+:root.light .md-body .hljs-meta,
+:root.light .md-body .hljs-link {
+  color: #6f42c1;
+}
+
+/* Raw editor textarea: plain, fixed, honest. */
+.raw-editor {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, 'SF Mono', monospace;
+  line-height: 1.6;
+  white-space: pre;
+  tab-size: 4;
+}

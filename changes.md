@@ -1,0 +1,90 @@
+# Changes — TizoMD
+
+Newest first. One entry per change, using this format:
+
+```
+## YYYY-MM-DD — Short title
+**What:** what actually changed
+**Why:** the reason it changed
+**Files:** the files touched
+```
+
+---
+
+## 2026-09-24 — Full scaffold: every layer written, tests + build + boot green (OpenCode · big-pickle)
+**What:** Wrote the entire TizoMD codebase from the locked plan, then verified
+it end to end. Config: `package.json` (tizomd/TizoMD 0.0.1, dep set mirroring
+the downloader), `tsconfig.json`, `electron.vite.config.ts`, `.gitignore`,
+`electron-builder.yml` (NSIS + zip on Windows, AppImage only on Linux — no
+portable exe — publish to `BKHornYT/tizomd`), `.github/workflows/release.yml`
+(tag-driven, tag≡package.json guard, windows then serialized linux, `--publish
+always` so no draft-release trap). Shared: `types.ts` (all cross-process
+contracts) and `markdown.ts` (renderMarkdown with `html:false` + highlight.js,
+`splitBlocks` outermost-block model, `replaceLines` inverse). Main: app/window
+with single-instance lock, dev icon from `build/icon.ico`, full application
+menu (File/View/Edit/Help shipping `menu:action` to the renderer), the whole
+IPC surface (files, folder tree, session, settings, export, updates),
+`saveTextFile` disk guard in `files.ts`, `walkTree` folder browsing, HTML + PDF
+export (PDF via hidden-window `printToPDF`), electron-updater at launch + 3h
+timer. Stores: `session.json` with debounced writes and the `clean` flag,
+validated `settings.json`. Preload: `window.tizomd` bridge. Renderer:
+Tailwind-v4 theme (dark navy default + light, `md-body` typography, hljs
+colors), App shell with session restore + recovery notices + save-guard wiring
++ update banners + About dialog, FileTree, TabBar, SettingsView, and the
+Typora-style EditorPane (render→DOMPurify→ref innerHTML, click-aware
+imperative textarea block editing, split/raw modes, Restore/Discard notice
+bars). Icons: `scripts/build-icon.mjs` draws the navy rounded-square + white M
+mark with a PNG-in-ICO encoder (7 sizes) into `build/iconsrc` + `build/icon.ico`.
+Tests: `test-blocks` (split/replace round-trip), `test-session` (persistence
+via an `electron` stub keyed on `TIZO_TEST_DATA_DIR` + `node --import` hooks),
+`test-guard` (never-clobber disk guard) — all run real source. Verified:
+`npm run typecheck` clean, `npm test` 29/29 green, `npm run build` green, and a
+live `npx electron .` smoke boot with clean logs and a real `session.json`
+written by the running app. Also fixed the type manifest along the way
+(`ReadFileResult`/`SaveFileResult` as proper discriminated unions so the
+renderer can narrow, `BrowserWindow` as a value import for export dialogs,
+import-depth corrections in menu/update/editor paths, the dead `saveActiveAs`
+call, unused imports).
+**Why:** The plan was locked; this turns it into an app that boots and holds
+state, with the dangerous parts (clipboard-of-data-loss session memory, the
+no-clobber save guard, sanitized rendering, always-on auto-update) tested at
+their seams before any eyes-on polish pass.
+**Files:** package.json, tsconfig.json, electron.vite.config.ts, .gitignore,
+LICENSE, electron-builder.yml, .github/workflows/release.yml, src/shared/*
+(src/shared/types.ts, src/shared/markdown.ts), src/main/* (index.ts, ipc.ts,
+menu.ts, files.ts, export.ts, update.ts, store/settings.ts, store/session.ts),
+src/preload/index.ts, src/renderer/* (index.html, src/main.tsx, src/env.d.ts,
+src/index.css, src/strings.ts, src/App.tsx, src/components/Icon.tsx,
+src/components/FileTree.tsx, src/components/TabBar.tsx, src/views/SettingsView.tsx,
+src/editor/EditorPane.tsx), scripts/* (build-icon.mjs, electron-stub.mjs,
+electron-stub-hooks.mjs, electron-stub-register.mjs, test-blocks.ts,
+test-session.ts, test-guard.ts), build/iconsrc/*, build/icon.ico, CLAUDE.md,
+task.md, changes.md
+
+## 2026-09-23 — Plan refined, repo created (OpenCode · big-pickle)
+**What:** Locked Typora-style editing UX (clean rendered view by default, click a
+block to edit its raw source, pane toggle + split view). Dropped the portable
+exe — Windows ships NSIS + zip, Linux AppImage, updater on everywhere. Added the
+file-changed-on-disk guard as a v1 feature (re-check before every save, reload
+newer disk version, keep unsaved edits in the recovery buffer). Locked
+markdown-it + highlight.js + DOMPurify (`html:false`). Created the GitHub repo
+`BKHornYT/tizomd` (private now, public at v1). Updated `CLAUDE.md`, `task.md`.
+**Why:** User decisions in the planning session; the repo is reserved before
+first release so the auto-update path never has to move.
+**Files:** CLAUDE.md, task.md
+
+## 2026-09-23 — Planning locked (OpenCode · big-pickle)
+**What:** Filled in `CLAUDE.md` with the full plan — what TizoMD is, the
+decided stack (Electron + React + Tailwind), feature scope, the custom Tizo
+license, Windows + Linux targets, TizoMD / `BKHornYT/tizomd` naming, and the
+gotchas carried over from Video Downloader Tizo. Added the update system as a
+core feature (electron-updater at launch + on a timer) so shipped fixes reach
+real installs. Updated `task.md` with the plan backlog.
+**Why:** This is a planning-only session; the docs are the deliverable so any
+later session can build from a locked plan.
+**Files:** CLAUDE.md, task.md
+
+## 2026-09-23 — Project created
+**What:** Scaffolded `CLAUDE.md`, `task.md`, and `changes.md`.
+**Why:** New project created from the launcher.
+**Files:** CLAUDE.md, task.md, changes.md
