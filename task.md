@@ -2,19 +2,19 @@
 
 ## Now
 
-**Chrome + split overhaul done, unverified by eye:** frameless window with a
-custom 34px titlebar (M + wordmark, drag region, min/max/close — native menu
-bar hidden, accelerators kept) and the split view is now a real side-by-side
-with a draggable divider. Code is green (typecheck, 29/29, build, dev boot
-with a .md arg). Not yet released — the owner runs v0.1.1.
+**v0.1.2 releasing** (2026-09-24): chrome + split overhaul tagged and pushed
+to CI — frameless window (custom titlebar, hidden native menu) and the split
+view fixed to a real side-by-side with a draggable divider. The installed
+v0.1.1 on this PC auto-updates to it in-app. Docs updated in the same commit.
 
 ## Next
 
-- [ ] **Owner: run the latest code** and feel the frameless window + split
-      divider before this gets tagged/released — "remove the electron vibe"
-      verdict needs a pair of eyes on the result
-- [ ] Tag the chrome + split work as v0.1.2 once verified (same bump→tag→CI
-      flow; installed v0.1.1 will auto-update — the updater is proven)
+- [ ] **Verify the installed app picked up v0.1.2** — check its
+      `%APPDATA%\tizomd\logs\update.log` for found → download → ready (or
+      auto-install), and the exe reports 0.1.2.0
+- [ ] **Owner: feel the frameless window + split divider** — verdicts to
+      chase: titlebar drag/maximize/restore, split divider smoothness, edge
+      resize still working, any chrome regressions
 - [ ] **User testing on Windows** — .md association (double-click opens here),
       block editor on real docs, exports, theme toggle, Ctrl+N/O/S/Ctrl+,
       session restore, save guard — report what feels wrong

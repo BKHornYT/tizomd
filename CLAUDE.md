@@ -44,8 +44,13 @@ through GitHub suggestions from users.
   `disableDifferentialDownload`), a local 0.1.0 install was launched and its
   log shows found → downloaded → auto-installed on quit; installed exe now
   reports 0.1.1.0. This PC now runs the released build.
-- **In progress:** hands-on user testing on the installed v0.1.1 — UI polish
-  and any rough edges the code pass cannot see.
+- **2026-09-24:** **v0.1.2 released** — frameless custom chrome (no OS frame;
+  slim 34px TitleBar = drag region + M mark + custom min/max/close; native
+  menu bar hidden, accelerators kept) and the split view fixed to a real
+  side-by-side with a draggable divider. Installed app auto-updates to it.
+- **In progress:** hands-on user testing on the installed v0.1.2 — the feel
+  of the frameless window and the split divider; any rough edges the code
+  pass cannot see; then the next rounds from GitHub suggestions.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
   (SmartScreen warning); nothing user-tested beyond smoke boots
 

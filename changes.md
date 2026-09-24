@@ -11,6 +11,23 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — v0.1.2 released: frameless chrome + real split (OpenCode · big-pickle)
+**What:** Released the framed-next round as **v0.1.2** — no code changes
+beyond the bump (`0.1.1 → 0.1.2`); the release carries the work already
+logged below (frameless window + custom titlebar, native menu bar hidden,
+split view fixed to real side-by-side with a draggable divider). Tag
+`v0.1.2` pushed; CI builds + publishes Windows NSIS + zip and the Linux
+AppImage with both update feeds. The installed v0.1.1 on this PC updates to
+it in-app (the updater is proven — it does the found → download → installed
+loop and logs it to `%APPDATA%\tizomd\logs\update.log`). Also carries the
+`disableDifferentialDownload` flag from the v0.1.1 round, so this fetch is a
+clean full download.
+**Why:** "published?" — the owner verified the chrome direction on main and
+said "sure make sure to update md files"; docs kept in step (this file, plus
+CLAUDE.md and task.md).
+**Files:** `package.json`, `package-lock.json`, `CLAUDE.md`, `changes.md`,
+`task.md` (code itself unchanged since 43822f2)
+
 ## 2026-09-24 — Frameless custom chrome + fixed split view (OpenCode · big-pickle)
 **What:** (1) **Electron vibe removed.** The window is now `frame: false` — no
 OS title bar / frame; a new `TitleBar` component draws the whole top row: drag
