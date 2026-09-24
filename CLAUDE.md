@@ -70,9 +70,18 @@ through GitHub suggestions from users.
   another line while a block is being edited now commits the current line,
   formats it, and opens the clicked line in the *same* click — no second click
   needed. (Reverses the "hopping dropped" note in the Key Decision below.)
-- **In progress:** owner feel check on the installed v0.1.4 (block-to-block
-  hop in one click, click-to-edit stop-on-click-off, preview round-trip,
-  scroll-mid-edit), then the next rounds from GitHub suggestions.
+- **2026-09-24:** **v0.1.5 — the round actually holds.** The owner's feel check
+  ("you did not really fix it") showed the v0.1.4 hop half-worked: clicking off
+  *without typing* left the original block stuck as a bare textarea (a
+  no-change commit triggers no re-render, so nothing cleared the overlay), and
+  the deferred preview rebuild wiped the freshly hopped-into block a beat
+  later. Fixed: each editor snapshots its block's formatted HTML and **always**
+  restores it on exit (fresh re-render when the text changed), and the rebuild
+  re-attaches the active overlay. Released as v0.1.5 from the Zima itself (gh
+  now installed + logged in here as BKHornYT — no PC needed to publish).
+- **In progress:** owner feel check on the installed v0.1.5 (block returns to
+  format on click-off with *and* without typing, one-click hop, Escape
+  discards), then the next rounds from GitHub suggestions.
 - **Known broken / not started:** macOS unbuilt; unsigned Windows installers
   (SmartScreen warning); nothing user-tested beyond smoke boots. Watch-item:
   the *dev* instance (`electron .`) intermittently closed its window
@@ -216,7 +225,12 @@ Decisions worth not re-litigating, and why. Newest first.
   straight into it** — commit + open in the same click, because a hop that
   needs a second click is a rough edge; the open resolves its block index
   against the freshest blocks after the commit, so index shifts from a
-  multi-line edit can't corrupt content.
+  multi-line edit can't corrupt content. **The format promise is
+  unconditional:** each editor snapshots its block's formatted HTML and always
+  restores it on exit (no-change commits and Escape restore the saved markup;
+  changed commits restore a fresh render of the new text), and a deferred
+  preview rebuild re-attaches the active editor so a hop is never wiped a beat
+  later — the "goes back to format" contract holds in every path.
 - **2026-09-23 — Custom Tizo license, not MIT/GPL.** User decided "free to use
   but not steal." MIT lets anyone rebrand and sell it; GPL forces open-source
   reciprocity but the user wants the freedom to keep it closed if ever needed,

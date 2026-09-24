@@ -2,16 +2,19 @@
 
 ## Now
 
-**v0.1.4 releasing** (2026-09-24): the block-hopping round (click another line
-while editing → it commits the current block, formats it, and opens the
-clicked block in one click) is approved and tagged `v0.1.4`; the PC is manned
-to push main + the tag, CI publishes, the installed app self-updates.
+**v0.1.5 releasing** (2026-09-24): owner's feel check found the v0.1.4 block-hopping
+round only half-worked — clicking off without typing left the original block as
+a bare textarea (commit changed nothing → no re-render cleared the overlay), and
+the deferred preview rebuild wiped the block you hopped to. Both fixed in the
+round below (always-restore of the formatted block + re-attach after rebuild);
+released as v0.1.5 from the Zima's own `gh` login.
 
 ## Next
 
-- [ ] **Owner: feel the block-hopping round** — click a line, then click a
-      different line: it should commit the first, format it, and open the
-      second in one click (changes.md entry above)
+- [ ] **Owner: re-feel the block editing on the installed v0.1.5** — click a
+      line, type, click a different line: first block returns to format AND the
+      second opens in one click; also try clicking away with NO typing (it was
+      stuck before), and Escape mid-edit (should discard, not commit)
 - [ ] **Owner: feel the round on the installed v0.1.3** — click a line in nice
       mode, click off (commit + stop), switch views and back (preview not
       blank), scroll mid-edit (edit survives), typing in split stays smooth
@@ -44,6 +47,10 @@ release is the real dist; CI does it and publishes.
       longer rebuilds document/destroys block edits, click-off commits + stops
       editing, double-commit corruption fixed, deferred preview renders,
       rAF-throttled scroll, renderer session IPC debounce, splitBlocks gated
+- [x] 2026-09-24 — v0.1.5 released: block editor always returns to format
+      (saved-HTML restore on every exit incl. no-change commits + Escape; fresh
+      re-render on changed commits) and survives the deferred preview rebuild
+      (re-attach active overlay); ref-routed listeners, Escape can't re-commit
 - [x] 2026-09-24 — v0.1.4 released: version bump 0.1.3 → 0.1.4, tag `v0.1.4`,
       carries the block-hopping round; push + CI publish from the PC
 - [x] 2026-09-24 — Block-to-block editing hops in one click: clicking another

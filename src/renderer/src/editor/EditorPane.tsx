@@ -59,6 +59,19 @@ export default function EditorPane({
   const previewRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const editingValue = useRef<string | null>(null)
+  // Fresh mirrors of state for the imperative overlay listeners and the deferred
+  // preview rebuild, so a long-lived textarea or a stale render never acts on a
+  // stale closure.
+  const editingIndexRef = useRef<number | null>(null)
+  const viewModeRef = useRef<ViewMode>(viewMode)
+  const blocksRef = useRef(blocks)
+  const savedBlockHtmlRef = useRef<string | null>(null)
+  const applyOverlayRef = useRef<(index: number) => void>(() => {})
+  const commitBlockRef = useRef<() => void>(() => {})
+  const cancelBlockRef = useRef<() => void>(() => {})
+  editingIndexRef.current = editingIndex
+  viewModeRef.current = viewMode
+  blocksRef.current = blocks
 
   // --- split ratio ---------------------------------------------------------
   const [leftPercent, setLeftPercent] = useState(50)
@@ -116,6 +129,13 @@ export default function EditorPane({
     Array.from(el.children).forEach((child, i) => {
       child.setAttribute('data-block-index', String(i))
     })
+    // A rebuild lands ~one beat after the last commit's text does, and the fresh
+    // innerHTML would silently destroy a block editor that is still open. Re-attach
+    // it against the fresh nodes so an editor survives its own deferred re-render.
+    const idx = editingIndexRef.current
+    if (viewModeRef.current === 'preview' && idx !== null) {
+      applyOverlayRef.current(idx)
+    }
   }, [deferredText])
 
   // The preview node unmounts on every mode switch (it lives at different tree
@@ -140,23 +160,42 @@ export default function EditorPane({
     }
   }, [viewMode, tab.scroll, deferredText, renderPreview])
 
-  // --- open a block editor over the preview ---------------------------------
-  useEffect(() => {
-    if (viewMode !== 'preview') {
-      setEditingIndex(null)
-      editingValue.current = null
-      return
-    }
-    if (editingIndex === null) return
+  // --- open a block editor over the preview ----------------------------------
+  // The overlay lives imperatively on top of the rendered block. The block's
+  // formatted HTML is captured when the editor opens and restoreBlock sends it
+  // back when the edit ends — crucial for a commit that changed nothing: in that
+  // case nothing re-renders, so without the restore the block stays stuck as a
+  // bare textarea. A commit that DID change the text restores a fresh render of
+  // the new text, so no stale copy flashes before the deferred preview catches up.
+  const restoreBlock = useCallback((index: number, html: string): void => {
     const el = previewRef.current
-    if (!el) return
-    const child = el.children[editingIndex]
-    if (!child || child.getAttribute('data-tizo-editing') === '1') return
-    const block = blocks[editingIndex]
-    if (!block) {
+    if (!el || viewModeRef.current !== 'preview') return
+    const child = el.children[index]
+    if (child) child.outerHTML = html
+  }, [])
+
+  const renderBlockHtml = useCallback((text: string, index: number): string | null => {
+    const host = document.createElement('div')
+    host.innerHTML = DOMPurify.sanitize(renderMarkdown(text), { USE_PROFILES: { html: true } })
+    const node = host.firstElementChild
+    if (!node) return null
+    node.setAttribute('data-block-index', String(index))
+    return node.outerHTML
+  }, [])
+
+  const applyOverlay = useCallback((index: number): void => {
+    const el = previewRef.current
+    if (!el || viewModeRef.current !== 'preview') return
+    const block = blocksRef.current[index]
+    if (!block || index < 0) {
       setEditingIndex(null)
+      savedBlockHtmlRef.current = null
       return
     }
+    const child = el.children[index] as HTMLElement | undefined
+    if (!child || child.getAttribute('data-tizo-editing') === '1') return
+    // Keep the formatted copy around so the block can go back to it on exit.
+    savedBlockHtmlRef.current = child.outerHTML
     // Fit the edit surface to the block that was there: measure before clearing
     // and re-grow on input, so entering/leaving edit mode never jumps the layout.
     const settledHeight = Math.max(child.getBoundingClientRect().height, 24)
@@ -182,19 +221,21 @@ export default function EditorPane({
       editingValue.current = ta.value
       autosize()
     })
-    ta.addEventListener('blur', () => commitBlock())
+    // Listeners go through refs so a textarea that outlives a render always talks
+    // to the latest handlers (Escape must discard even after a later render).
+    ta.addEventListener('blur', () => commitBlockRef.current())
     ta.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         event.preventDefault()
-        cancelBlock()
+        cancelBlockRef.current()
       } else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey || event.altKey)) {
         event.preventDefault()
-        commitBlock()
+        commitBlockRef.current()
         // Enter on a single-line block commits too — editing is click-to-fix,
         // not a stay-in mode.
       } else if (event.key === 'Enter' && ta.value.split('\n').length <= 1) {
         event.preventDefault()
-        commitBlock()
+        commitBlockRef.current()
       }
     })
     ta.focus()
@@ -204,7 +245,19 @@ export default function EditorPane({
     } else {
       ta.setSelectionRange(ta.value.length, ta.value.length)
     }
-  }, [editingIndex, viewMode, blocks])
+  }, [])
+  applyOverlayRef.current = applyOverlay
+
+  useEffect(() => {
+    if (viewMode !== 'preview') {
+      savedBlockHtmlRef.current = null
+      setEditingIndex(null)
+      editingValue.current = null
+      return
+    }
+    if (editingIndex === null) return
+    applyOverlay(editingIndex)
+  }, [editingIndex, viewMode, applyOverlay])
 
   // Idempotent: clearing textareaRef on entry means a blur-then-click pair (or
   // two events for one physical click) can safely both call commitBlock — the
@@ -213,25 +266,50 @@ export default function EditorPane({
     const ta = textareaRef.current
     if (!ta) return
     textareaRef.current = null
-    const block = editingIndex !== null ? blocks[editingIndex] : null
-    if (!block) {
+    const idx = editingIndexRef.current
+    const block = idx !== null ? blocksRef.current[idx] : null
+    if (!block || idx === null) {
       setEditingIndex(null)
       editingValue.current = null
+      savedBlockHtmlRef.current = null
       return
     }
     const next = ta.value
     if (next !== block.text) {
       onText(replaceLines(tab.text, block.start, block.end, next))
     }
+    // Always send the block back to its formatted state, even on a no-change
+    // commit where no re-render is coming to clear the textarea for us. With a
+    // change, restore a render of the fresh text so the old copy never flashes.
+    const saved = savedBlockHtmlRef.current
+    if (saved) {
+      if (next !== block.text) {
+        const html = renderBlockHtml(next, idx)
+        if (html) restoreBlock(idx, html)
+      } else {
+        restoreBlock(idx, saved)
+      }
+      savedBlockHtmlRef.current = null
+    }
     setEditingIndex(null)
     editingValue.current = null
-  }, [editingIndex, blocks, tab.text, onText])
+  }, [tab.text, onText, renderBlockHtml, restoreBlock])
+  commitBlockRef.current = commitBlock
 
   const cancelBlock = useCallback((): void => {
+    // Null the ref before the outerHTML replacement, or removing the focused
+    // textarea fires blur → commitBlock and Escape would "cancel" by committing.
+    textareaRef.current = null
+    const idx = editingIndexRef.current
+    const saved = savedBlockHtmlRef.current
+    if (idx !== null && saved) {
+      savedBlockHtmlRef.current = null
+      restoreBlock(idx, saved)
+    }
     setEditingIndex(null)
     editingValue.current = null
-    textareaRef.current = null
-  }, [])
+  }, [restoreBlock])
+  cancelBlockRef.current = cancelBlock
 
   const openBlock = useCallback(
     (index: number): void => {

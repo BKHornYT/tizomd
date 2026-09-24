@@ -11,6 +11,35 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — v0.1.5: block editor always returns to format (OpenCode · big-pickle)
+**What:** the v0.1.4 hop looked right but had two real holes from the deferred
+render design, both found by the owner's feel check ("you did not really fix
+it"):
+(1) **Clicking off without typing left the original block stuck as a bare
+textarea.** The blur commits, but a commit that changes nothing triggers no
+re-render, so nothing cleared the overlay — only a *typed* commit was reset by
+the deferred preview rebuild. Now each block's formatted HTML is captured when
+its editor opens (`savedBlockHtmlRef`) and **always** restored on exit
+(`restoreBlock`): unchanged commits and Escape replace the node with the saved
+markup; commits that DID change the text restore a fresh render of the new text
+(`renderBlockHtml`) so no stale copy flashes before the preview catches up. The
+"original line goes back to format" contract is now unconditional.
+(2) **The block you hop to gets wiped a beat later.** The deferred preview
+rebuild replaces `innerHTML` wholesale ~one beat after the last commit's text
+lands, destroying the freshly opened editor. `renderPreview` now re-attaches
+the active overlay against the fresh nodes (`applyOverlayRef`) after rebuilding,
+so an editor survives its own re-render with its value preserved (`editingValue`).
+Also: overlay listeners now go through refs (`commitBlockRef`/`cancelBlockRef`)
+so a long-lived textarea never acts on a stale commit/cancel closure, and Escape
+nulls the textarea ref before the outerHTML restore so removing the focused
+textarea can't re-fire a blur-commit and turn Cancel into Commit.
+**Why:** the owner's direct report; the v0.1.4 hop half-worked and this makes the
+commit+format+hop contract actually hold in every path.
+**Files:** `src/renderer/src/editor/EditorPane.tsx`
+**Verified:** typecheck clean, 29/29 tests green, build green. Released as
+**v0.1.5** (bump + tag via the Zima's own `gh` login), CI publishes, installed
+app self-updates.
+
 ## 2026-09-24 — v0.1.4 released (OpenCode · big-pickle)
 **What:** released the block-hopping round (below) as **v0.1.4**. Version
 bumped `0.1.3 → 0.1.4` in `package.json` + `package-lock.json`; tag `v0.1.4`
