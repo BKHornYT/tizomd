@@ -225,11 +225,14 @@ Decisions worth not re-litigating, and why. Newest first.
 - **2026-09-24 — Visual language: Typora-simple, not downloader-chrome.** The
   user rejected the navy/purple "official Tizo app" look: "make it simple like
   typora or whatever." So the chrome disappears — **black default** (dark is
-  true `#000000`, light is the opt-in paper mode), no header at all (wordmark,
-  theme toggle, update check and view-mode switcher all live in the thin bottom
-  status bar; file actions live in the native menu, including Settings… Ctrl+,),
-  flat tab strip with an accent underline, centered 46-rem preview column. One
-  Tizo touch left: the gradient M mark in the empty/About spots.
+  true `#000000`, light is the opt-in paper mode), **no OS window frame at
+  all** (`frame: false`; a slim 34px `TitleBar` owns the whole top row: drag
+  region, M mark + wordmark, custom min/max/close — the native menu bar is
+  hidden, its accelerators kept), no content header (wordmark, theme toggle,
+  update check and view-mode switcher all live in the thin bottom status bar;
+  file actions live in the native menu, including Settings… Ctrl+,), flat tab
+  strip with an accent underline, centered 46-rem preview column. One Tizo
+  touch left: the gradient M mark in the empty/About spots.
 - **2026-09-24 — No DevTools surfaces.** The detached auto-open in dev and the
   View-menu `toggleDevTools` role are removed — a user shortcut must never pop
   the inspector. (Re-enable locally if ever needed; it is a one-line diff.)

@@ -49,6 +49,21 @@ function wire(getWindow: () => BrowserWindow | null): void {
     app.quit()
   })
 
+  // --- Window controls (frameless titlebar buttons) -----------------------
+
+  ipcMain.on('window:minimize', () => getWindow()?.minimize())
+
+  ipcMain.on('window:toggle-maximize', () => {
+    const win = getWindow()
+    if (!win) return
+    if (win.isMaximized()) win.unmaximize()
+    else win.maximize()
+  })
+
+  ipcMain.on('window:close', () => getWindow()?.close())
+
+  ipcMain.handle('window:is-maximized', () => getWindow()?.isMaximized() ?? false)
+
   // --- Files -------------------------------------------------------------
 
   ipcMain.handle('files:get-open-paths', (): string[] => takeQueuedOpenPaths())

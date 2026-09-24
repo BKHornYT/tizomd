@@ -2,23 +2,24 @@
 
 ## Now
 
-**Auto-update proven live, this machine now runs the released v0.1.1.**
-Installed a local 0.1.0 build, launched it, and its `update.log` shows:
-updater ready v0.1.0 → Found version 0.1.1 → downloading (differential
-1.5MB attempt sha-mismatched, fell back to full) → downloaded → ready →
-on quit auto-ran `tizomd-0.1.1-setup.exe --updated,/S`; the installed exe
-now reports `0.1.1.0`. `disableDifferentialDownload = true` was added so
-the flaky differential path never runs again (lands with the next release).
+**Chrome + split overhaul done, unverified by eye:** frameless window with a
+custom 34px titlebar (M + wordmark, drag region, min/max/close — native menu
+bar hidden, accelerators kept) and the split view is now a real side-by-side
+with a draggable divider. Code is green (typecheck, 29/29, build, dev boot
+with a .md arg). Not yet released — the owner runs v0.1.1.
 
 ## Next
 
-- [ ] **User testing on Windows** — the .md association (double-click opens
-      here, settable as default app), block editor on real docs, exports,
-      theme toggle, Ctrl+N/O/S/Ctrl+, session restore, save guard — report
-      what feels wrong
-- [ ] Decide what goes in v0.1.2 (candidate: the differential-download flag
-      is already in main; README for the public repo; word count in status
-      bar; styled unsaved-confirm dialog)
+- [ ] **Owner: run the latest code** and feel the frameless window + split
+      divider before this gets tagged/released — "remove the electron vibe"
+      verdict needs a pair of eyes on the result
+- [ ] Tag the chrome + split work as v0.1.2 once verified (same bump→tag→CI
+      flow; installed v0.1.1 will auto-update — the updater is proven)
+- [ ] **User testing on Windows** — .md association (double-click opens here),
+      block editor on real docs, exports, theme toggle, Ctrl+N/O/S/Ctrl+,
+      session restore, save guard — report what feels wrong
+- [ ] Ready for consideration: persist the split ratio in session memory per
+      tab (currently in-memory only, resets to 50% on reopen)
 - [ ] macOS not built (out of scope); nothing in the stack blocks it later
 - [ ] `docs/gotchas.md`: move the Gotchas section out of `CLAUDE.md` once
       coding deepens
@@ -38,6 +39,9 @@ release is the real dist; CI does it and publishes.
       quieted; typecheck + 29/29 + build + boot re-verified
 - [x] 2026-09-24 — Repo pushed public: git init (main), .gitattributes, merged
       the GitHub README, `gh repo edit` → Public (enables auto-update feeds)
+- [x] 2026-09-24 — Chrome + split overhaul: frameless window (custom titlebar,
+      hidden native menu, window-control IPC), split view fixed to real
+      side-by-side with a draggable divider (20–80% clamp)
 - [x] 2026-09-24 — v0.1.1: auto-update audit + hardening (file logger to
       `<logs>/update.log`, `.catch` on feed check), feed verified
       (app-update.yml embedded, latest.yml live), release tagged + pushed

@@ -29,6 +29,10 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     show: false, // revealed on ready-to-show to avoid a white flash
     backgroundColor: pageBg,
+    // No OS chrome: the window is drawn entirely by the renderer, with a slim
+    // app-styled titlebar (drag region + window controls). "Electron default
+    // frame" is precisely the generic feel this app is avoiding.
+    frame: false,
     ...(!app.isPackaged && existsSync(devIcon) ? { icon: devIcon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -39,6 +43,17 @@ function createWindow(): BrowserWindow {
       sandbox: false
     }
   })
+
+  // The application menu stays (its accelerators and Edit roles are real), but
+  // the visible bar belongs to the same chrome we just removed.
+  win.setMenuBarVisibility(false)
+  // Let the titlebar reflect maximize/restore: send the state on launch and on
+  // every change, so the maximize button can swap its icon.
+  win.webContents.once('did-finish-load', () => {
+    win.webContents.send('window:maximized', win.isMaximized())
+  })
+  win.on('maximize', () => win.webContents.send('window:maximized', true))
+  win.on('unmaximize', () => win.webContents.send('window:maximized', false))
 
   win.on('ready-to-show', () => win.show())
 

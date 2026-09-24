@@ -58,7 +58,16 @@ body {
   overflow: hidden;
   user-select: none;
   background: var(--bg);
-  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Frameless window: the titlebar strip is what lets the window move. Interactive
+   children (window-control buttons) must carve themselves out with .app-no-drag. */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
 }
 
 ::selection {

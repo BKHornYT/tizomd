@@ -13,6 +13,7 @@ import { strings } from './strings'
 import Icon, { type IconName } from './components/Icon'
 import FileTree from './components/FileTree'
 import TabBar from './components/TabBar'
+import TitleBar from './components/TitleBar'
 import EditorPane from './editor/EditorPane'
 import SettingsView from './views/SettingsView'
 
@@ -470,6 +471,7 @@ export default function App(): JSX.Element {
 
   return (
     <div className="app-bg flex h-full flex-col overflow-hidden">
+      <TitleBar />
       {showSettings ? (
         <SettingsView settings={settings} onBack={() => setShowSettings(false)} onChanged={setSettings} />
       ) : (

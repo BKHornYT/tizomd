@@ -11,6 +11,34 @@ Newest first. One entry per change, using this format:
 
 ---
 
+## 2026-09-24 — Frameless custom chrome + fixed split view (OpenCode · big-pickle)
+**What:** (1) **Electron vibe removed.** The window is now `frame: false` — no
+OS title bar / frame; a new `TitleBar` component draws the whole top row: drag
+region, gradient M mark + TizoMD wordmark, and custom window controls
+(minimize / maximize-restore toggle / close with the Win11 red hover). The
+native menu bar is hidden (`setMenuBarVisibility`) but the menu stays alive —
+its accelerators (Ctrl+S/O etc.) and Edit roles still work. New IPC
+(`window:minimize|toggle-maximize|close|is-maximized` + `window:maximized`
+state pushes) powers the titlebar; `windowControls` on the preload bridge;
+`.app-drag` / `.app-no-drag` CSS utilities; `minus`/`square`/`restore` icons.
+Main pushes the maximized state to the renderer on load and on change so the
+button swaps icon. (2) **Split view actually splits.** It was `preview` with
+`w-full max-w-[46rem] mx-auto` as a flex sibling — its 100% basis crushed the
+raw pane, so it was never really side-by-side. Now each pane is a sized flex
+item (`raw` at a percentage width, `preview` filling the rest at its own
+width) and a **draggable divider** between them (pointer-capture based,
+20–80% clamp, col-resize cursor, highlight on hover/drag). Verified:
+typecheck, 29/29 tests, build, and a dev boot with a `.md` arg — clean stderr,
+session shows the file was opened.
+**Why:** "remove the electron vibe. idk it makes it feel less worthy" +
+"the split view is not split, but also should be movable" — confirmed the
+directions with the owner first (full custom chrome, slim titlebar, draggable
+divider).
+**Files:** `src/main/index.ts`, `src/main/ipc.ts`, `src/preload/index.ts`,
+`src/renderer/src/components/{Icon,TitleBar}.tsx`,
+`src/renderer/src/editor/EditorPane.tsx`, `src/renderer/src/App.tsx`,
+`src/renderer/src/index.css`
+
 ## 2026-09-24 — v0.1.1: updater hardened + released (OpenCode · big-pickle)
 **What:** Pre-release auto-update audit found two real defects in
 `src/main/update.ts` and fixed both, then released as v0.1.1. (1)

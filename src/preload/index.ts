@@ -21,6 +21,21 @@ const api = {
 
   quit: (): Promise<void> => ipcRenderer.invoke('app:quit'),
 
+  /** Frameless titlebar controls — the window has no OS frame to call into. */
+  windowControls: {
+    minimize: (): void => void ipcRenderer.send('window:minimize'),
+    toggleMaximize: (): void => void ipcRenderer.send('window:toggle-maximize'),
+    close: (): void => void ipcRenderer.send('window:close'),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:is-maximized'),
+    onMaximized: (handler: (maximized: boolean) => void): (() => void) => {
+      const listener = (_e: unknown, maximized: boolean): void => handler(maximized)
+      ipcRenderer.on('window:maximized', listener)
+      return () => {
+        ipcRenderer.off('window:maximized', listener)
+      }
+    }
+  },
+
   files: {
     /** Returns paths, or null when the dialog was canceled. */
     openDialog: (): Promise<string[] | null> => ipcRenderer.invoke('dialog:open-files'),

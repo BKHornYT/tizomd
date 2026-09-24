@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { JSX, MouseEvent } from 'react'
+import type { JSX, MouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import DOMPurify from 'dompurify'
 import type { ViewMode } from '../../../shared/types'
 import { renderMarkdown, replaceLines, splitBlocks } from '../../../shared/markdown'
@@ -56,6 +56,46 @@ export default function EditorPane({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const editingValue = useRef<string | null>(null)
   const mountedScroll = useRef(false)
+
+  // --- split ratio ---------------------------------------------------------
+  const [leftPercent, setLeftPercent] = useState(50)
+  const [dragging, setDragging] = useState(false)
+  const draggingRef = useRef(false)
+  const splitRef = useRef<HTMLDivElement | null>(null)
+
+  const percentAt = useCallback((clientX: number): number => {
+    const el = splitRef.current
+    if (!el) return 50
+    const rect = el.getBoundingClientRect()
+    const pct = ((clientX - rect.left) / rect.width) * 100
+    return Math.min(80, Math.max(20, pct))
+  }, [])
+
+  const onDividerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>): void => {
+      if (e.button !== 0) return
+      e.preventDefault()
+      e.currentTarget.setPointerCapture(e.pointerId)
+      draggingRef.current = true
+      setDragging(true)
+      setLeftPercent(percentAt(e.clientX))
+    },
+    [percentAt]
+  )
+
+  const onDividerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>): void => {
+      if (!draggingRef.current) return
+      setLeftPercent(percentAt(e.clientX))
+    },
+    [percentAt]
+  )
+
+  const onDividerUp = useCallback((): void => {
+    if (!draggingRef.current) return
+    draggingRef.current = false
+    setDragging(false)
+  }, [])
 
   // --- rendered preview ----------------------------------------------------
   const renderPreview = useCallback((): void => {
@@ -245,9 +285,30 @@ export default function EditorPane({
         {viewMode === 'preview' && preview}
         {viewMode === 'raw' && <div className="surface h-full overflow-hidden">{rawEditor}</div>}
         {viewMode === 'split' && (
-          <div className="flex h-full">
-            <div className="surface h-full min-w-0 flex-1 border-r border-subtle">{rawEditor}</div>
-            {preview}
+          <div ref={splitRef} className="flex h-full select-none">
+            <div
+              className="relative h-full min-w-0 overflow-hidden"
+              style={{ width: `${leftPercent}%` }}
+            >
+              <div className="surface absolute inset-0">{rawEditor}</div>
+            </div>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-valuenow={Math.round(leftPercent)}
+              aria-valuemin={20}
+              aria-valuemax={80}
+              onPointerDown={onDividerDown}
+              onPointerMove={onDividerMove}
+              onPointerUp={onDividerUp}
+              onPointerCancel={onDividerUp}
+              className={`group relative z-10 flex w-[7px] shrink-0 cursor-col-resize items-stretch justify-center transition-colors ${
+                dragging ? 'bg-[var(--accent-soft)]' : 'hover:bg-[var(--accent-soft)]'
+              }`}
+            >
+              <div className="w-px bg-[var(--border)] group-hover:bg-[var(--accent)]" />
+            </div>
+            <div className="relative h-full min-w-0 flex-1 overflow-hidden">{preview}</div>
           </div>
         )}
       </div>
